@@ -1,0 +1,106 @@
+﻿using Ico.Binary;
+using Ico.Model;
+using System;
+
+namespace Ico.Codecs
+{
+    public static class IcoDecoder
+    {
+        public static void DoFile(byte[] data, ParseContext context, Action<IcoFrame> processFrame)
+        {
+            var reader = new ByteReader(data);
+
+            var idReserved = reader.NextUint16();
+            var idType = reader.NextUint16();
+            var idCount = reader.NextUint16();
+
+            if (idReserved != FileFormatConstants._iconMagicHeader)
+            {
+                throw new InvalidIcoFileException($"ICONDIR.idReserved should be {FileFormatConstants._iconMagicHeader}, was {idReserved}.", context);
+            }
+
+            if (idType != FileFormatConstants._iconMagicType)
+            {
+                throw new InvalidIcoFileException($"ICONDIR.idType should be {FileFormatConstants._iconMagicType}, was {idType}.", context);
+            }
+
+            if (idCount == 0 || idCount > FileFormatConstants._iconMaxEntries)
+            {
+                throw new InvalidIcoFileException($"ICONDIR.idCount is {idCount}, an implausible value for an ICO file.", context);
+            }
+
+            for (var i = 0u; i < idCount; i++)
+            {
+                context.ImageDirectoryIndex = i;
+                var source = ProcessIcoFrame(reader, context);
+                processFrame(source);
+            }
+
+            context.ImageDirectoryIndex = null;
+        }
+
+        private static IcoFrame ProcessIcoFrame(ByteReader reader, ParseContext context)
+        {
+            var bWidth = reader.NextUint8();
+            var bHeight = reader.NextUint8();
+            var bColorCount = reader.NextUint8();
+            var bReserved = reader.NextUint8();
+            var wPlanes = reader.NextUint16();
+            var wBitCount = reader.NextUint16();
+            var dwBytesInRes = reader.NextUint32();
+            var dwImageOffset = reader.NextUint32();
+
+            if (bWidth != bHeight)
+            {
+                context.Reporter.WarnLine($"Icon is not square ({bWidth}x{bHeight}).", context.DisplayedPath, context.ImageDirectoryIndex.Value);
+            }
+
+            if (bReserved != FileFormatConstants._iconEntryReserved)
+            {
+                throw new InvalidIcoFileException($"ICONDIRECTORY.bReserved should be {FileFormatConstants._iconEntryReserved}, was {bReserved}.", context);
+            }
+
+            if (wPlanes > 1)
+            {
+                throw new InvalidIcoFileException($"ICONDIRECTORY.wPlanes is {wPlanes}.  Only single-plane bitmaps are supported.", context);
+            }
+
+            if (dwBytesInRes > int.MaxValue)
+            {
+                throw new InvalidIcoFileException($"ICONDIRECTORY.dwBytesInRes == {dwBytesInRes}, which is unreasonably large.", context);
+            }
+
+            if (dwImageOffset > int.MaxValue)
+            {
+                throw new InvalidIcoFileException($"ICONDIRECTORY.dwImageOffset == {dwImageOffset}, which is unreasonably large.", context);
+            }
+
+            var bitmapHeader = new ByteReader(reader.Data.Slice((int)dwImageOffset, (int)dwBytesInRes));
+
+            var signature = bitmapHeader.NextUint64();
+            bitmapHeader.SeekOffset = 0;
+
+            var source = new IcoFrame
+            {
+                Encoding = new IcoFrameEncoding
+                {
+                    ClaimedBitDepth = wBitCount,
+                    ClaimedHeight = bHeight > 0 ? bHeight : 256u,
+                    ClaimedWidth = bWidth > 0 ? bWidth : 256u,
+                },
+            };
+
+            if (FileFormatConstants._pngHeader == signature)
+            {
+                PngDecoder.DoPngEntry(bitmapHeader, context, source);
+            }
+            else
+            {
+                BmpDecoder.DoBitmapEntry(bitmapHeader, context, source);
+            }
+
+            return source;
+        }
+
+    }
+}
