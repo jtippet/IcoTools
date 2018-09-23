@@ -3,6 +3,21 @@ Tools to cope with the .ICO file format.
 
 You'll need to install dotnet core 2.1, if you haven't already got it.
 
+## IcoExtract
+
+IcoExtract saves each frame as a separate file.
+For example:
+
+    dotnet icoextract.dll -i my_cool_icon.ico -v
+    Writing frame to my_cool_icon.ico.00.256x256x32.png...
+    Writing frame to my_cool_icon.ico.01.64x64x32.png...
+    Writing frame to my_cool_icon.ico.04.32x32x32.png...
+    Writing frame to my_cool_icon.ico.07.16x16x4.png...
+
+Note that, by default, bitmap frames are always converted to PNG, which means things don't quite round-trip.
+You can override this behavior with `--output-format KeepSource`, but that poses a new problem: the bitmaps that appear in ICOs have nonstandard transparency features.
+So most (all?) tools that think they understand BMP files won't understand the BMPs that are extracted from ICOs.
+
 ## IcoNag
 
 IcoNag is a linting tool that looks for common errors in .ICO files.
