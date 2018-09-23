@@ -9,7 +9,7 @@ namespace Ico.Codecs
 {
     public static class PngDecoder
     {
-        private const int _ihdrChunkName = 0x52444849; // "IHDR"
+        private const int _ihdrChunkName = 0x49484452; // "IHDR"
 
         public static void DoPngEntry(ByteReader bitmapHeader, ParseContext context, IcoFrame source)
         {
@@ -64,12 +64,14 @@ namespace Ico.Codecs
                     break;
             }
 
+            source.Encoding.ActualHeight = encoding.Height;
+            source.Encoding.ActualWidth = encoding.Width;
             source.Encoding.ActualBitDepth = encoding.BitsPerChannel * numChannels;
         }
 
         public static PngFileEncoding GetPngFileEncoding(Memory<byte> data)
         {
-            var reader = new ByteReader(data);
+            var reader = new ByteReader(data, ByteOrder.NetworkEndian);
             if (FileFormatConstants._pngHeader != reader.NextUint64())
             {
                 throw new InvalidPngFileException($"Data stream does not begin with the PNG magic constant");

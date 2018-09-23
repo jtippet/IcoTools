@@ -8,7 +8,7 @@ namespace Ico.Codecs
     {
         public static void DoFile(byte[] data, ParseContext context, Action<IcoFrame> processFrame)
         {
-            var reader = new ByteReader(data);
+            var reader = new ByteReader(data, ByteOrder.LittleEndian);
 
             var idReserved = reader.NextUint16();
             var idType = reader.NextUint16();
@@ -75,7 +75,7 @@ namespace Ico.Codecs
                 throw new InvalidIcoFileException($"ICONDIRECTORY.dwImageOffset == {dwImageOffset}, which is unreasonably large.", context);
             }
 
-            var bitmapHeader = new ByteReader(reader.Data.Slice((int)dwImageOffset, (int)dwBytesInRes));
+            var bitmapHeader = new ByteReader(reader.Data.Slice((int)dwImageOffset, (int)dwBytesInRes), ByteOrder.LittleEndian);
 
             var signature = bitmapHeader.NextUint64();
             bitmapHeader.SeekOffset = 0;
@@ -90,7 +90,7 @@ namespace Ico.Codecs
                 },
             };
 
-            if (FileFormatConstants._pngHeader == signature)
+            if (FileFormatConstants._pngHeader == ByteOrderConverter.To(ByteOrder.NetworkEndian, signature))
             {
                 PngDecoder.DoPngEntry(bitmapHeader, context, source);
             }

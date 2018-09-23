@@ -6,14 +6,12 @@ namespace Ico.Binary
     internal class ByteWriter
     {
         public List<byte> Data { get; } = new List<byte>();
+        public ByteOrder Endianness { get; }
         public int SeekOffset { get; set; } = 0;
 
-        public ByteWriter()
+        public ByteWriter(ByteOrder endianness)
         {
-            if (!BitConverter.IsLittleEndian)
-            {
-                throw new Exception("Big-endian systems are not supported");
-            }
+            Endianness = endianness;
         }
 
         public void AddUint8(byte value)
@@ -25,6 +23,7 @@ namespace Ico.Binary
         public void AddUint16(ushort value)
         {
             EnsureCapacity(2);
+            value = ByteOrderConverter.To(Endianness, value);
             foreach (var b in BitConverter.GetBytes(value))
             {
                 Data[SeekOffset++] = b;
@@ -34,6 +33,7 @@ namespace Ico.Binary
         public void AddUint32(uint value)
         {
             EnsureCapacity(4);
+            value = ByteOrderConverter.To(Endianness, value);
             foreach (var b in BitConverter.GetBytes(value))
             {
                 Data[SeekOffset++] = b;
@@ -43,6 +43,7 @@ namespace Ico.Binary
         public void AddInt32(int value)
         {
             EnsureCapacity(4);
+            value = ByteOrderConverter.To(Endianness, value);
             foreach (var b in BitConverter.GetBytes(value))
             {
                 Data[SeekOffset++] = b;

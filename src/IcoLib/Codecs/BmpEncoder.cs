@@ -56,7 +56,7 @@ namespace Ico.Codecs
                 return null;
             }
 
-            var writer = new ByteWriter();
+            var writer = new ByteWriter(ByteOrder.LittleEndian);
 
             EncodeBitmapHeader(source, dialect, encoding, colorTable, writer, out var offsetToImageSize);
 
@@ -113,7 +113,7 @@ namespace Ico.Codecs
 
         private static byte[] EncodeRgbBitmap(IcoFrame source, ParseContext context, BitmapEncoding encoding, Dialect dialect)
         {
-            var writer = new ByteWriter();
+            var writer = new ByteWriter(ByteOrder.LittleEndian);
             EncodeBitmapHeader(source, dialect, encoding, null, writer, out var offsetToImageSize);
 
             var offsetToData = (uint)writer.Data.Count;

@@ -7,7 +7,7 @@
         internal static ushort _iconMagicType = 1;
         internal static ushort _iconMaxEntries = 256;
         internal static byte _iconEntryReserved = 0;
-        internal static ulong _pngHeader = 0x0a1a0a0d474e5089; // little-endian
+        internal static ulong _pngHeader = 0x89504e470d0a1a0a;
 
         internal static uint _bitmapInfoHeaderSize = 40;
         internal static uint BI_RGB = 0;

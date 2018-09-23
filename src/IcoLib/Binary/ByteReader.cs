@@ -4,17 +4,14 @@ namespace Ico.Binary
 {
     public class ByteReader
     {
-        public Memory<byte> Data { get; private set; }
+        public Memory<byte> Data { get; }
+        public ByteOrder Endianness { get; }
         public int SeekOffset { get; set; }
 
-        public ByteReader(Memory<byte> data)
+        public ByteReader(Memory<byte> data, ByteOrder endianness)
         {
-            if (!BitConverter.IsLittleEndian)
-            {
-                throw new Exception("Big-endian systems are not supported");
-            }
-
             Data = data;
+            Endianness = endianness;
             SeekOffset = 0;
         }
 
@@ -27,28 +24,28 @@ namespace Ico.Binary
         {
             var result = BitConverter.ToUInt16(Data.Span.Slice(SeekOffset, 2).ToArray(), 0);
             SeekOffset += 2;
-            return result;
+            return ByteOrderConverter.To(Endianness, result);
         }
 
         public uint NextUint32()
         {
             var result = BitConverter.ToUInt32(Data.Span.Slice(SeekOffset, 4).ToArray(), 0);
             SeekOffset += 4;
-            return result;
+            return ByteOrderConverter.To(Endianness, result);
         }
 
         public int NextInt32()
         {
             var result = BitConverter.ToInt32(Data.Span.Slice(SeekOffset, 4).ToArray(), 0);
             SeekOffset += 4;
-            return result;
+            return ByteOrderConverter.To(Endianness, result);
         }
 
         public ulong NextUint64()
         {
             var result = BitConverter.ToUInt64(Data.Span.Slice(SeekOffset, 8).ToArray(), 0);
             SeekOffset += 8;
-            return result;
+            return ByteOrderConverter.To(Endianness, result);
         }
 
         public bool IsEof => SeekOffset == Data.Length;

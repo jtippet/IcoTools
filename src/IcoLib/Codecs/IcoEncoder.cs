@@ -9,7 +9,7 @@ namespace Ico.Codecs
     {
         public static void EmitIco(string outputPath, ParseContext context)
         {
-            var writer = new ByteWriter();
+            var writer = new ByteWriter(ByteOrder.LittleEndian);
 
             writer.AddUint16(FileFormatConstants._iconMagicHeader);
             writer.AddUint16(FileFormatConstants._iconMagicType);

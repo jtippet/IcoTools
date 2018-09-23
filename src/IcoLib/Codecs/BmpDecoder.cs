@@ -59,6 +59,8 @@ namespace Ico.Codecs
             var height = biHeight / 2;
             var width = biWidth;
 
+            source.Encoding.ActualHeight = (uint)height;
+            source.Encoding.ActualWidth = (uint)width;
             source.Encoding.ActualBitDepth = biBitCount;
             source.Encoding.Type = IcoEncodingType.Bitmap;
             source.CookedData = new Image<Rgba32>(width, height);
