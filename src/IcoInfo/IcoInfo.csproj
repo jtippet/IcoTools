@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Ico</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.3.0" />
+    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="2.2.0-preview3-35497" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IcoLib\IcoLib.csproj" />
+  </ItemGroup>
+
+</Project>
