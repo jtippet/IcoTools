@@ -105,6 +105,7 @@ namespace Ico.Info
                 System.Console.WriteLine($"    Bitmap type:   {StringFromPixelFormat(frame.Encoding.PixelFormat)}");
             if (frame.Encoding.PaletteSize != 0)
                 System.Console.WriteLine($"    Palette size:  {frame.Encoding.PaletteSize}");
+            System.Console.WriteLine($"    Bytes on disk: {frame.TotalDiskUsage}");
             System.Console.WriteLine($"                   Actual     Claimed in ICO header");
             System.Console.WriteLine($"    Width:           {frame.Encoding.ActualWidth.ToString().PadLeft(4, ' ')}                      {frame.Encoding.ClaimedWidth.ToString().PadLeft(4, ' ')}");
             System.Console.WriteLine($"    Height:          {frame.Encoding.ActualHeight.ToString().PadLeft(4, ' ')}                      {frame.Encoding.ClaimedHeight.ToString().PadLeft(4, ' ')}");

@@ -15,6 +15,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IcoExtract", "IcoExtract\Ic
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IcoInfo", "IcoInfo\IcoInfo.csproj", "{0BA65FDD-8686-4213-A734-14F74656201D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IcoCat", "IcoCat\IcoCat.csproj", "{D3C0427E-3579-43B1-963B-B981A450EACB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IcoCut", "IcoCut\IcoCut.csproj", "{21546FDE-BCDB-4A22-9667-E3BBA8D87444}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +49,14 @@ Global
 		{0BA65FDD-8686-4213-A734-14F74656201D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0BA65FDD-8686-4213-A734-14F74656201D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0BA65FDD-8686-4213-A734-14F74656201D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3C0427E-3579-43B1-963B-B981A450EACB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3C0427E-3579-43B1-963B-B981A450EACB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3C0427E-3579-43B1-963B-B981A450EACB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3C0427E-3579-43B1-963B-B981A450EACB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21546FDE-BCDB-4A22-9667-E3BBA8D87444}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21546FDE-BCDB-4A22-9667-E3BBA8D87444}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21546FDE-BCDB-4A22-9667-E3BBA8D87444}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21546FDE-BCDB-4A22-9667-E3BBA8D87444}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -63,6 +63,25 @@ For example:
     my_cool_icon.ico(2): Warning: Non-black image pixels masked out.
     my_cool_icon.ico(6): Warning: PNG-encoded image with bit depth 4 (expected 32).
 
+## IcoCut
+
+IcoCut can remove frames from an .ICO file.
+You can either remove all frames matching a particular size or bit depth, or you can remove specific frames by number.
+For example, you can remove all frames of height or width 20px or 24px:
+
+    dotnet icocut.dll -i my_cool_icon.ico -s 20 24
+    my_cool_icon.ico(2): Removed 2 frame(s).
+
+## IcoCat
+
+IcoCat can add a frame to an .ICO file.
+You can provide the new image from either a PNG or a BMP.
+You can also optionally provide an explicit image mask.
+If you don't provide a mask, one will be inferred from the image's transparency.
+For example:
+
+    dotnet icocat.dll -i my_cool_icon.ico -s new_layer.png
+
 ## IcoCrush
 
 IcoCrush is an optimization tool that can reduce the size of your .ICO files.
@@ -75,3 +94,4 @@ It's designed to work in conjunction with your favorite PNG optimizer (pngcrush,
 Note most PNG optimizers will try to reduce the color depth of the PNG.
 WIC only supports BGRA32 PNG images in the ICO container, so you'll have to convince your optimizer to emit more colors than might be neccessary.
 (For example, if you're using pngcrush, use the "-c 6 -noreduce" options.)
+

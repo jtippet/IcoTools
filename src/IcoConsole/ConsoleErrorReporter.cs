@@ -16,7 +16,7 @@ namespace Ico.Console
 
         public void ErrorLine(string message, string fileName, uint frameNumber)
         {
-            Reporter.Error.WriteLine($"{fileName}({frameNumber}): Error: {message}".Red());
+            Reporter.Error.WriteLine($"{fileName}({frameNumber + 1}): Error: {message}".Red());
         }
 
         public void WarnLine(string message)
@@ -31,17 +31,37 @@ namespace Ico.Console
 
         public void WarnLine(string message, string fileName, uint frameNumber)
         {
-            Reporter.Output.WriteLine($"{fileName}({frameNumber}): Warning: {message}".Yellow());
+            Reporter.Output.WriteLine($"{fileName}({frameNumber + 1}): Warning: {message}".Yellow());
         }
 
-        public void InfoLine(string s)
+        public void InfoLine(string message)
         {
-            Reporter.Output.WriteLine(s);
+            Reporter.Output.WriteLine(message);
         }
 
-        public void VerboseLine(string s)
+        public void InfoLine(string message, string fileName)
         {
-            Reporter.Verbose.WriteLine(s);
+            Reporter.Output.WriteLine($"{fileName}: {message}");
+        }
+
+        public void InfoLine(string message, string fileName, uint frameNumber)
+        {
+            Reporter.Output.WriteLine($"{fileName}({frameNumber + 1}): {message}");
+        }
+
+        public void VerboseLine(string message)
+        {
+            Reporter.Verbose.WriteLine(message);
+        }
+
+        public void VerboseLine(string message, string fileName)
+        {
+            Reporter.Verbose.WriteLine($"{fileName}: {message}");
+        }
+
+        public void VerboseLine(string message, string fileName, uint frameNumber)
+        {
+            Reporter.Verbose.WriteLine($"{fileName}({frameNumber + 1}): {message}");
         }
     }
 }

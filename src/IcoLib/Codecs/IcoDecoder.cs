@@ -75,13 +75,10 @@ namespace Ico.Codecs
                 throw new InvalidIcoFileException($"ICONDIRECTORY.dwImageOffset == {dwImageOffset}, which is unreasonably large.", context);
             }
 
-            var bitmapHeader = new ByteReader(reader.Data.Slice((int)dwImageOffset, (int)dwBytesInRes), ByteOrder.LittleEndian);
-
-            var signature = bitmapHeader.NextUint64();
-            bitmapHeader.SeekOffset = 0;
-
             var source = new IcoFrame
             {
+                TotalDiskUsage = dwBytesInRes + /* sizeof(ICONDIRENTRY) */ 16,
+
                 Encoding = new IcoFrameEncoding
                 {
                     ClaimedBitDepth = wBitCount,
@@ -90,7 +87,13 @@ namespace Ico.Codecs
                 },
             };
 
-            if (FileFormatConstants._pngHeader == ByteOrderConverter.To(ByteOrder.NetworkEndian, signature))
+            source.RawData = reader.Data.Slice((int)dwImageOffset, (int)dwBytesInRes).ToArray();
+            var bitmapHeader = new ByteReader(source.RawData, ByteOrder.LittleEndian);
+
+            var signature = bitmapHeader.NextUint64();
+            bitmapHeader.SeekOffset = 0;
+
+            if (PngDecoder.IsProbablyPngFile(ByteOrderConverter.To(ByteOrder.NetworkEndian, signature)))
             {
                 PngDecoder.DoPngEntry(bitmapHeader, context, source);
             }

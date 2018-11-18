@@ -12,5 +12,7 @@ namespace Ico.Model
         public Image<Rgba32> CookedData { get; set; }
 
         public bool[,] Mask { get; set; }
+
+        public uint TotalDiskUsage { get; set; }
     }
 }

@@ -17,38 +17,14 @@ namespace Ico.Codecs
 
         public static byte[] EncodeBitmap(ParseContext context, BitmapEncoding encoding, Dialect dialect, IcoFrame source)
         {
-            return (GetBitDepth(encoding) < 16)
+            return (BmpUtil.GetBitDepthForPixelFormat(encoding) < 16)
                 ? EncodeIndexedBitmap(context, encoding, dialect, source)
                 : EncodeRgbBitmap(source, context, encoding, dialect);
         }
 
-        private static int GetBitDepth(BitmapEncoding pixelFormat)
-        {
-            switch (pixelFormat)
-            {
-                case BitmapEncoding.Pixel_indexed1:
-                    return 1;
-                case BitmapEncoding.Pixel_indexed2:
-                    return 2;
-                case BitmapEncoding.Pixel_indexed4:
-                    return 4;
-                case BitmapEncoding.Pixel_indexed8:
-                    return 8;
-                case BitmapEncoding.Pixel_rgb15:
-                    return 16;
-                case BitmapEncoding.Pixel_rgb24:
-                    return 24;
-                case BitmapEncoding.Pixel_0rgb32:
-                    return 32;
-                case BitmapEncoding.Pixel_argb32:
-                    return 32;
-            }
-            throw new ArgumentException(nameof(pixelFormat));
-        }
-
         private static byte[] EncodeIndexedBitmap(ParseContext context, BitmapEncoding encoding, Dialect dialect, IcoFrame source)
         {
-            var numBits = GetBitDepth(encoding);
+            var numBits = BmpUtil.GetBitDepthForPixelFormat(encoding);
 
             var colorTable = BuildColorTable(1u << numBits, context, source);
             if (colorTable == null)
@@ -195,7 +171,7 @@ namespace Ico.Codecs
             writer.AddUint32((uint)source.CookedData.Width);
             writer.AddUint32((uint)source.CookedData.Height * ((dialect == Dialect.Ico) ? 2u : 1u));
             writer.AddUint16(1); // biPlanes
-            writer.AddUint16((ushort)GetBitDepth(encoding)); // biBitCount
+            writer.AddUint16((ushort)BmpUtil.GetBitDepthForPixelFormat(encoding)); // biBitCount
             writer.AddUint32(FileFormatConstants.BI_RGB); // biCompression
             offsetToImageSize = (uint)writer.SeekOffset;
             writer.AddUint32(0); // biSizeImage

@@ -43,6 +43,8 @@ namespace Ico.Codecs
                 writer.SeekOffset = currentOffset;
 
                 writer.AddBlob(frame.RawData);
+
+                frame.TotalDiskUsage = (uint)frame.RawData.Length + /* sizeof(ICONDIRENTRY) */ 16;
             }
 
             File.WriteAllBytes(outputPath, writer.Data.ToArray());

@@ -11,6 +11,11 @@ namespace Ico.Codecs
     {
         private const int _ihdrChunkName = 0x49484452; // "IHDR"
 
+        public static bool IsProbablyPngFile(ulong first8Bytes)
+        {
+            return FileFormatConstants._pngHeader == first8Bytes;
+        }
+
         public static void DoPngEntry(ByteReader bitmapHeader, ParseContext context, IcoFrame source)
         {
             if (source.Encoding.ClaimedBitDepth != 32)
