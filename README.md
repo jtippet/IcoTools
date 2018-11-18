@@ -3,6 +3,42 @@ Tools to cope with the .ICO file format.
 
 You'll need to install dotnet core 2.1, if you haven't already got it.
 
+## IcoInfo
+
+IcoInfo prints information about the frames in an ICO file.
+For example:
+
+    dotnet icoinfo.dll -i my_cool_icon.ico
+    File: my_cool_icon.ico
+      Frame #1
+        Encoding:      PNG
+                       Actual     Claimed in ICO header
+        Width:            256                       256
+        Height:           256                       256
+        Bit depth:         32                        32
+    
+      Frame #2
+        Encoding:      Bitmap
+        Bitmap type:   32-bit ARGB
+                       Actual     Claimed in ICO header
+        Width:             32                        32
+        Height:            32                        32
+        Bit depth:         32                        32
+    
+      Frame #3
+        Encoding:      Bitmap
+        Bitmap type:   4-bit RGB
+                       Actual     Claimed in ICO header
+        Width:             16                        16
+        Height:            16                        16
+        Bit depth:          4                         4
+
+Note that due to the vagaries of the ICO file format, the width and height of a frame are encoded twice.
+The first is in the ICO header, and would typically be used when selecting which frame to display.
+The second is in the bitmap or PNG data, and describes the actual size of the image.
+Hopefully these two are the same, but they aren't always.
+In any case, this tool prints both sizes, so you can decide for yourself what to do.
+
 ## IcoExtract
 
 IcoExtract saves each frame as a separate file.
