@@ -119,13 +119,20 @@ namespace Ico.Extract
                     break;
 
                 case IcoEncodingType.Png:
-                    using (var stream = new MemoryStream())
+                    if (frame.Encoding.Type == IcoEncodingType.Png)
                     {
-                        frame.CookedData.SaveAsPng(stream, context.PngEncoder);
+                        File.WriteAllBytes(outputFilename, frame.RawData);
+                    }
+                    else
+                    {
+                        using (var stream = new MemoryStream())
+                        {
+                            frame.CookedData.SaveAsPng(stream, context.PngEncoder);
 
-                        stream.Flush();
-                        var png = stream.GetBuffer();
-                        File.WriteAllBytes(outputFilename, stream.GetBuffer());
+                            stream.Flush();
+                            var png = stream.GetBuffer();
+                            File.WriteAllBytes(outputFilename, stream.GetBuffer());
+                        }
                     }
                     break;
             }
