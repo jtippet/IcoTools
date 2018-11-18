@@ -30,6 +30,9 @@ namespace Ico
         [Option("preferred-format", Required = false, Hidden = false, HelpText = "Policy to decide which is the optimal encoding format.")]
         public BestFormatPolicy BestFormatPolicy { get; set; } = BestFormatPolicy.PreserveSource;
 
+        [Option("preferred-format-16x16x32", Required = false, Hidden = false, HelpText = "Policy to decide which is the optimal encoding format for the 16x16x32bpp frame.")]
+        public BestFormatPolicy BestFormatPolicy16x16x32 { get; set; } = BestFormatPolicy.Inherited;
+
         [Option("preferred-format-32x32x32", Required = false, Hidden = false, HelpText = "Policy to decide which is the optimal encoding format for the 32x32x32bpp frame.")]
         public BestFormatPolicy BestFormatPolicy32x32x32 { get; set; } = BestFormatPolicy.Inherited;
 

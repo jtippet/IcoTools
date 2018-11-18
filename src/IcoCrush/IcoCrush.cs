@@ -160,6 +160,14 @@ namespace Ico
                 policy = BestFormatPolicy.PreserveSource;
             }
 
+            if (source.Encoding.ClaimedHeight == 16 &&
+                source.Encoding.ClaimedWidth == 16 &&
+                source.Encoding.ClaimedBitDepth == 32 &&
+                opts.BestFormatPolicy16x16x32 != BestFormatPolicy.Inherited)
+            {
+                policy = opts.BestFormatPolicy16x16x32;
+            }
+
             if (source.Encoding.ClaimedHeight == 32 &&
                 source.Encoding.ClaimedWidth == 32 &&
                 source.Encoding.ClaimedBitDepth == 32 &&
