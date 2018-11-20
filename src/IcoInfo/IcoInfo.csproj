@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <RootNamespace>Ico</RootNamespace>
+    <RootNamespace>Ico.Info</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
