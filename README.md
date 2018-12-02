@@ -1,7 +1,29 @@
 # IcoTools
-Tools to cope with the .ICO file format.
+Tools to cope with the ICO file format.
 
-You'll need to install dotnet core 2.1, if you haven't already got it.
+You can dismantle, recombine, and optimize your icons.
+These tools use a pure C# parser and generator for icons, so they run on any operating system.
+In the UNIX tradition, each tool does one simple thing.
+
+## Example uses:
+ * Combine IcoCat + IcoCrush to make optimized ICO files from a collection of source PNG files.
+ * Nab all the cool bitmaps from someone's icon using IcoExtract.
+ * Integrate IcoNag into your build toolchain, to ensure nobody commits a broken icon.
+ * Remove obsolete bitdepths from your icons with IcoCut.
+ * Verify all your icons meet a minimum standard of sizes using IcoInfo.
+
+## Dependencies
+The only runtime dependency is dotnet core 2.1.
+Otherwise, these tools are platform-agnostic, and can run anywhere that dotnet core can run.
+Most tools do use the excellent cross-platform ImageSharp library: https://github.com/SixLabors/ImageSharp
+
+## Future work
+* I need to organize and rationalize the command-line arguments.
+* I really don't like the file globbing library this uses; I want to find a replacement.
+* IcoCrush will, in some cases, emit nonportable ICO files.  There should be warnings when this happens.
+* I ought to write deeper documentation on each warning produced by IcoNag (consequences & remediation).
+
+# Tools included in this repository
 
 ## IcoInfo
 
@@ -95,3 +117,6 @@ Note most PNG optimizers will try to reduce the color depth of the PNG.
 WIC only supports BGRA32 PNG images in the ICO container, so you'll have to convince your optimizer to emit more colors than might be neccessary.
 (For example, if you're using pngcrush, use the "-c 6 -noreduce" options.)
 
+# Contributing
+
+Bug reports, feature requests, and patches are welcome.
