@@ -31,6 +31,7 @@ namespace Ico.Validation
         MaskedPixelWithColor = 221,
         NoMaskedPixels = 222,
         IndexedColorOutOfBounds = 230,
+        UndersizedColorTable = 231,
         PngNot32Bit = 240,
         PngNotRGBA32 = 241,
         NotSquare = 256,

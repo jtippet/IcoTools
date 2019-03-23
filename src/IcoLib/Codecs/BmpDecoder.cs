@@ -105,6 +105,10 @@ namespace Ico.Codecs
             {
                 throw new InvalidIcoFileException(IcoErrorCode.InvalidBitapInfoHeader_biClrUsed, $"BITMAPINFOHEADER.biClrUsed is greater than 2^biBitCount (biClrUsed == {colorTableSize}, biBitCount = {bitDepth}).", context);
             }
+            else if (colorTableSize < 1u << (int)bitDepth)
+            {
+                context.Reporter.WarnLine(IcoErrorCode.UndersizedColorTable, $"This bitmap uses a color table that is smaller than the bit depth ({colorTableSize} < 2^{bitDepth})", context.DisplayedPath, context.ImageDirectoryIndex.Value);
+            }
 
             var colorTable = new Rgba32[colorTableSize];
             for (var i = 0; i < colorTableSize; i++)
