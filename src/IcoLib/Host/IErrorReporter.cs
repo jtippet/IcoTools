@@ -1,4 +1,4 @@
-﻿namespace Ico.Console
+﻿namespace Ico.Host
 {
     public interface IErrorReporter
     {

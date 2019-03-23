@@ -1,4 +1,5 @@
-﻿using Microsoft.DotNet.Cli.Utils;
+﻿using Ico.Host;
+using Microsoft.DotNet.Cli.Utils;
 
 namespace Ico.Console
 {

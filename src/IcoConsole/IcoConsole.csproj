@@ -10,4 +10,8 @@
     <PackageReference Include="Microsoft.DotNet.Cli.Utils" Version="2.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\IcoLib\IcoLib.csproj" />
+  </ItemGroup>
+
 </Project>

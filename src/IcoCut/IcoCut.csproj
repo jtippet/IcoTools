@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\IcoConsole\IcoConsole.csproj" />
     <ProjectReference Include="..\IcoLib\IcoLib.csproj" />
   </ItemGroup>
 
