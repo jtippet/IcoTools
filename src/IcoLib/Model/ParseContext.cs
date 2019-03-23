@@ -1,5 +1,6 @@
 ﻿using Ico.Codecs;
 using Ico.Host;
+using Ico.Validation;
 using SixLabors.ImageSharp.Formats.Png;
 using System.Collections.Generic;
 
@@ -22,5 +23,7 @@ namespace Ico.Model
         public StrictnessPolicy AllowPaletteTruncation { get; set; }
 
         public IErrorReporter Reporter { get; set; }
+
+        public IcoErrorCode LastEncodeError { get; set; }
     }
 }

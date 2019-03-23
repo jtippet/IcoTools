@@ -1,5 +1,6 @@
 ﻿using Ico.Binary;
 using Ico.Model;
+using Ico.Validation;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -20,7 +21,7 @@ namespace Ico.Codecs
         {
             if (source.Encoding.ClaimedBitDepth != 32)
             {
-                context.Reporter.WarnLine($"PNG-encoded image with bit depth {source.Encoding.ClaimedBitDepth} (expected 32).", context.DisplayedPath, context.ImageDirectoryIndex.Value);
+                context.Reporter.WarnLine(IcoErrorCode.PngNot32Bit, $"PNG-encoded image with bit depth {source.Encoding.ClaimedBitDepth} (expected 32).", context.DisplayedPath, context.ImageDirectoryIndex.Value);
             }
 
             using (var stream = new MemoryStream(bitmapHeader.Data.ToArray()))
@@ -42,11 +43,11 @@ namespace Ico.Codecs
             var encoding = GetPngFileEncoding(bitmapHeader.Data);
             if (encoding.ColorType != PngColorType.RGBA)
             {
-                context.Reporter.WarnLine($"ICO files require the embedded PNG image to be encoded in RGBA32 format; this is {encoding.ColorType}", context.DisplayedPath, context.ImageDirectoryIndex.Value);
+                context.Reporter.WarnLine(IcoErrorCode.PngNotRGBA32, $"ICO files require the embedded PNG image to be encoded in RGBA32 format; this is {encoding.ColorType}", context.DisplayedPath, context.ImageDirectoryIndex.Value);
             }
             else if (encoding.BitsPerChannel != 8)
             {
-                context.Reporter.WarnLine($"ICO files require the embedded PNG image to be encoded in RGBA32 format; this is RGBA{encoding.BitsPerChannel * 4}", context.DisplayedPath, context.ImageDirectoryIndex.Value);
+                context.Reporter.WarnLine(IcoErrorCode.PngNotRGBA32, $"ICO files require the embedded PNG image to be encoded in RGBA32 format; this is RGBA{encoding.BitsPerChannel * 4}", context.DisplayedPath, context.ImageDirectoryIndex.Value);
             }
 
             uint numChannels = 0;
@@ -79,7 +80,7 @@ namespace Ico.Codecs
             var reader = new ByteReader(data, ByteOrder.NetworkEndian);
             if (FileFormatConstants._pngHeader != reader.NextUint64())
             {
-                throw new InvalidPngFileException($"Data stream does not begin with the PNG magic constant");
+                throw new InvalidPngFileException(IcoErrorCode.NotPng, $"Data stream does not begin with the PNG magic constant");
             }
 
             var chunkLength = reader.NextUint32();
@@ -87,12 +88,12 @@ namespace Ico.Codecs
 
             if (chunkType != _ihdrChunkName)
             {
-                throw new InvalidPngFileException($"PNG file should begin with IHDR chunk; found {chunkType} instead");
+                throw new InvalidPngFileException(IcoErrorCode.PngBadIHDR, $"PNG file should begin with IHDR chunk; found {chunkType} instead");
             }
 
             if (chunkLength < 13)
             {
-                throw new InvalidPngFileException($"IHDR chunk is invalid length {chunkLength}; expected at least 13 bytes");
+                throw new InvalidPngFileException(IcoErrorCode.PngBadIHDR, $"IHDR chunk is invalid length {chunkLength}; expected at least 13 bytes");
             }
 
             var result = new PngFileEncoding
@@ -105,7 +106,7 @@ namespace Ico.Codecs
 
             if (result.Width == 0 || result.Height == 0)
             {
-                throw new InvalidPngFileException($"Illegal Width x Height of {result.Width} x {result.Height}");
+                throw new InvalidPngFileException(IcoErrorCode.PngIllegalInputDimensions, $"Illegal Width x Height of {result.Width} x {result.Height}");
             }
 
             switch (result.BitsPerChannel)
@@ -117,7 +118,7 @@ namespace Ico.Codecs
                 case 16:
                     break;
                 default:
-                    throw new InvalidPngFileException($"Illegal bits per color channel / palette entry of {result.BitsPerChannel}");
+                    throw new InvalidPngFileException(IcoErrorCode.PngIllegalInputDepth, $"Illegal bits per color channel / palette entry of {result.BitsPerChannel}");
             }
 
             switch (result.ColorType)
@@ -129,7 +130,7 @@ namespace Ico.Codecs
                 case PngColorType.RGBA:
                     break;
                 default:
-                    throw new InvalidPngFileException($"Illegal color type {result.ColorType}");
+                    throw new InvalidPngFileException(IcoErrorCode.PngIllegalColorType, $"Illegal color type {result.ColorType}");
             }
 
             return result;

@@ -21,7 +21,6 @@ Most tools do use the excellent cross-platform ImageSharp library: https://githu
 * I need to organize and rationalize the command-line arguments.
 * I really don't like the file globbing library this uses; I want to find a replacement.
 * IcoCrush will, in some cases, emit nonportable ICO files.  There should be warnings when this happens.
-* I ought to write deeper documentation on each warning produced by IcoNag (consequences & remediation).
 
 # Tools included in this repository
 
@@ -82,8 +81,11 @@ IcoNag is a linting tool that looks for common errors in .ICO files.
 For example:
 
     dotnet iconag.dll -i my_cool_icon.ico
-    my_cool_icon.ico(2): Warning: Non-black image pixels masked out.
-    my_cool_icon.ico(6): Warning: PNG-encoded image with bit depth 4 (expected 32).
+    my_cool_icon.ico(2): Warning ICO221: Non-black image pixels masked out.
+    my_cool_icon.ico(6): Warning ICO240: PNG-encoded image with bit depth 4 (expected 32).
+
+Since most of the warning messages are both terse and technical, this github repository contains a warning explainer for humans who haven't memorized the entire ICO file specification.
+For example, here's the reference for the first warning in the previous example here: https://github.com/jtippet/IcoTools/wiki/ICO221
 
 ## IcoCut
 

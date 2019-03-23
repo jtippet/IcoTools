@@ -1,7 +1,9 @@
 ﻿using CommandLine;
 using Ico.Codecs;
 using Ico.Console;
+using Ico.Host;
 using Ico.Model;
+using Ico.Validation;
 using Microsoft.DotNet.Cli.Utils;
 using Microsoft.Extensions.FileSystemGlobbing;
 using SixLabors.ImageSharp;
@@ -36,7 +38,7 @@ namespace Ico.Cut
             var files = matcher.Execute(new Microsoft.Extensions.FileSystemGlobbing.Abstractions.DirectoryInfoWrapper(cwd));
             if (!files.HasMatches)
             {
-                Reporter.ErrorLine("No files matched the inputs.");
+                Reporter.ErrorLine(IcoErrorCode.FileNotFound, "No files matched the inputs.");
                 return 2;
             }
 
@@ -52,28 +54,10 @@ namespace Ico.Cut
                     Reporter = Reporter,
                 };
 
-                try
-                {
-                    DoCutFrames(context, opts);
-                }
-                catch (InvalidIcoFileException e)
-                {
-                    var frame = (e.Context?.ImageDirectoryIndex);
-
-                    if (frame != null)
-                    {
-                        Reporter.ErrorLine(e.Message, e.Context.DisplayedPath, e.Context.ImageDirectoryIndex.Value);
-                    }
-                    else
-                    {
-                        Reporter.ErrorLine(e.Message, file.Stem);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Reporter.ErrorLine(e.ToString(), file.Stem);
-                }
+                ExceptionWrapper.Try(() => DoCutFrames(context, opts), context, Reporter);
             }
+
+            Reporter.PrintHelpUrls();
 
             return 0;
         }
@@ -83,7 +67,7 @@ namespace Ico.Cut
             var length = new FileInfo(context.FullPath).Length;
             if (length > FileFormatConstants.MaxIcoFileSize)
             {
-                Reporter.WarnLine($"Skipping file because it is unusually large ({length} bytes).", context.DisplayedPath);
+                Reporter.WarnLine(IcoErrorCode.FileTooLarge, $"Skipping file because it is unusually large ({length} bytes).", context.DisplayedPath);
                 return;
             }
 
@@ -101,11 +85,11 @@ namespace Ico.Cut
             {
                 if (i > context.GeneratedFrames.Count)
                 {
-                    Reporter.WarnLine($"Can't remove frame #{i} because the file only has {originalNumFrames}.", context.DisplayedPath);
+                    Reporter.WarnLine(IcoErrorCode.InvalidFrameIndex, $"Can't remove frame #{i} because the file only has {originalNumFrames}.", context.DisplayedPath);
                 }
                 else if (i < 1)
                 {
-                    Reporter.WarnLine($"#{i} is not a valid frame number.", context.DisplayedPath);
+                    Reporter.WarnLine(IcoErrorCode.InvalidFrameIndex, $"#{i} is not a valid frame number.", context.DisplayedPath);
                 }
                 else
                 {
@@ -125,7 +109,7 @@ namespace Ico.Cut
 
             if (!context.GeneratedFrames.Any())
             {
-                Reporter.WarnLine($"There are no frames remaining; this file will be unreadable by most apps.", context.DisplayedPath);
+                Reporter.WarnLine(IcoErrorCode.ZeroFrames, $"There are no frames remaining; this file will be unreadable by most apps.", context.DisplayedPath);
             }
 
             IcoEncoder.EmitIco(context.FullPath, context);

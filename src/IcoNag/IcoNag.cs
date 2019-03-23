@@ -1,7 +1,9 @@
 ﻿using CommandLine;
 using Ico.Codecs;
 using Ico.Console;
+using Ico.Host;
 using Ico.Model;
+using Ico.Validation;
 using Microsoft.DotNet.Cli.Utils;
 using Microsoft.Extensions.FileSystemGlobbing;
 using System;
@@ -35,7 +37,7 @@ namespace Ico
             var files = matcher.Execute(new Microsoft.Extensions.FileSystemGlobbing.Abstractions.DirectoryInfoWrapper(cwd));
             if (!files.HasMatches)
             {
-                Reporter.ErrorLine("No files matched the inputs.");
+                Reporter.ErrorLine(IcoErrorCode.FileNotFound, "No files matched the inputs.");
                 return 2;
             }
 
@@ -51,28 +53,10 @@ namespace Ico
                     Reporter = Reporter,
                 };
 
-                try
-                {
-                    DoLintFile(context, opts);
-                }
-                catch (InvalidIcoFileException e)
-                {
-                    var frame = (e.Context?.ImageDirectoryIndex);
-
-                    if (frame != null)
-                    {
-                        Reporter.ErrorLine(e.Message, e.Context.DisplayedPath, e.Context.ImageDirectoryIndex.Value);
-                    }
-                    else
-                    {
-                        Reporter.ErrorLine(e.Message, file.Stem);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Reporter.ErrorLine(e.ToString(), file.Stem);
-                }
+                ExceptionWrapper.Try(() => DoLintFile(context, opts), context, Reporter);
             }
+
+            Reporter.PrintHelpUrls();
 
             return 0;
         }
@@ -82,7 +66,7 @@ namespace Ico
             var length = new FileInfo(context.FullPath).Length;
             if (length > FileFormatConstants.MaxIcoFileSize)
             {
-                Reporter.WarnLine($"Skipping file because it is unusually large ({length} bytes).", context.DisplayedPath);
+                Reporter.WarnLine(IcoErrorCode.FileTooLarge, $"Skipping file because it is unusually large ({length} bytes).", context.DisplayedPath);
                 return;
             }
 
@@ -114,7 +98,8 @@ namespace Ico
                 return;
             }
 
-            Reporter.WarnLine($"Icon file contains redundant frames.  Frames #{aIndex} and #{bIndex} have the same height, width, and color depth " +
+            Reporter.WarnLine(IcoErrorCode.DuplicateFrameTypes,
+                $"Icon file contains redundant frames.  Frames #{aIndex} and #{bIndex} have the same height, width, and color depth " +
                 $"({a.Encoding.ClaimedHeight}x{a.Encoding.ClaimedWidth}@{a.Encoding.ClaimedBitDepth}).  Everyone will ignore the latter frame.",
                 fileName);
         }

@@ -2,12 +2,14 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Ico
+namespace Ico.Validation
 {
     [Serializable]
     public class InvalidIcoFileException : Exception
     {
-        public ParseContext Context { get; set; }
+        public ParseContext Context { get; private set; }
+
+        public IcoErrorCode ErrorCode { get; private set; }
 
         public InvalidIcoFileException()
         {
@@ -21,8 +23,9 @@ namespace Ico
         {
         }
 
-        public InvalidIcoFileException(string message, ParseContext context) : this(message)
+        public InvalidIcoFileException(IcoErrorCode errorCode, string message, ParseContext context) : this(message)
         {
+            ErrorCode = errorCode;
             Context = context;
         }
 

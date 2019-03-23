@@ -3,6 +3,7 @@ using Ico.Binary;
 using Ico.Codecs;
 using Ico.Console;
 using Ico.Model;
+using Ico.Validation;
 using Microsoft.DotNet.Cli.Utils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -37,7 +38,7 @@ namespace Ico.Cat
                     case "png":
                         break;
                     default:
-                        Reporter.ErrorLine($"Invalid encoding type: {opts.EncodingOverrideString}");
+                        Reporter.ErrorLine(IcoErrorCode.UnsupportedCodec, $"Invalid encoding type: {opts.EncodingOverrideString}");
                         return 1;
                 }
             }
@@ -71,7 +72,7 @@ namespace Ico.Cat
                         opts.BitmapEncodingOverride = BitmapEncoding.Pixel_argb32;
                         break;
                     default:
-                        Reporter.ErrorLine($"Invalid bitamp encoding: {opts.BitmapEncodingString}");
+                        Reporter.ErrorLine(IcoErrorCode.UnsupportedBitmapEncoding, $"Invalid bitamp encoding: {opts.BitmapEncodingString}");
                         return 1;
                 }
             }
@@ -101,7 +102,7 @@ namespace Ico.Cat
             {
                 if (opts.FrameIndex.Value < 1 || opts.FrameIndex.Value - 1 > context.GeneratedFrames.Count)
                 {
-                    Reporter.ErrorLine($"Cannot insert frame at #{opts.FrameIndex.Value}. The icon has {context.GeneratedFrames.Count} frame(s).", opts.InputFile);
+                    Reporter.ErrorLine(IcoErrorCode.InvalidFrameIndex, $"Cannot insert frame at #{opts.FrameIndex.Value}. The icon has {context.GeneratedFrames.Count} frame(s).", opts.InputFile);
                     return 1;
                 }
 
@@ -113,6 +114,8 @@ namespace Ico.Cat
             }
 
             IcoEncoder.EmitIco(opts.InputFile, context);
+
+            Reporter.PrintHelpUrls();
             return 0;
         }
 
@@ -150,7 +153,7 @@ namespace Ico.Cat
 
             if (outputEncoding != IcoEncodingType.Bitmap && opts.BitmapEncodingOverride.HasValue)
             {
-                Reporter.WarnLine("Ignoring bitmap encoding configuration because we're not emitting a bitmap frame");
+                Reporter.WarnLine(IcoErrorCode.OnlySupportedOnBitmaps, "Ignoring bitmap encoding configuration because we're not emitting a bitmap frame");
             }
 
             if (outputEncoding != sourceEncoding)
@@ -205,7 +208,9 @@ namespace Ico.Cat
                     var mask = decoder.Decode<Rgba32>(new Configuration(), stream);
                     if (mask.Width != frame.CookedData.Width || mask.Height != frame.CookedData.Height)
                     {
-                        Reporter.ErrorLine($"The mask's dimentions {mask.Height}x{mask.Width} don't match "
+                        Reporter.ErrorLine(
+                            IcoErrorCode.BitmapMaskWrongDimensions,
+                            $"The mask's dimentions {mask.Height}x{mask.Width} don't match "
                             + $"the frame dimensions {frame.CookedData.Height}x{frame.CookedData.Width}.",
                             opts.MaskImagePath);
                         throw new ArgumentException();
@@ -217,7 +222,9 @@ namespace Ico.Cat
                         {
                             if (mask[x, y].PackedValue != 0xffffffff && mask[x, y].PackedValue != 0x000000ff)
                             {
-                                Reporter.ErrorLine($"The mask must be comprised entirely of black and white pixels (where black means transparent).",
+                                Reporter.ErrorLine(
+                                    IcoErrorCode.BitampMaskWrongColors,
+                                    $"The mask must be comprised entirely of black and white pixels (where black means transparent).",
                                     opts.MaskImagePath);
                                 throw new ArgumentException();
                             }
@@ -235,7 +242,7 @@ namespace Ico.Cat
             frame.RawData = BmpEncoder.EncodeBitmap(context, encoding, BmpEncoder.Dialect.Ico, frame);
             if (frame.RawData == null)
             {
-                Reporter.ErrorLine($"Cannot encode the source image as a bitmap of type: {encoding}. Try reducing the number of colors, or changing the bitmap encoding.", opts.SourceImagePath);
+                Reporter.ErrorLine(context.LastEncodeError, $"Cannot encode the source image as a bitmap of type: {encoding}. Try reducing the number of colors, or changing the bitmap encoding.", opts.SourceImagePath);
                 throw new ArgumentException();
             }
 

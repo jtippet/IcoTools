@@ -1,5 +1,6 @@
 ﻿using Ico.Binary;
 using Ico.Model;
+using Ico.Validation;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,8 @@ namespace Ico.Codecs
 
         public static byte[] EncodeBitmap(ParseContext context, BitmapEncoding encoding, Dialect dialect, IcoFrame source)
         {
+            context.LastEncodeError = IcoErrorCode.NoError;
+
             return (BmpUtil.GetBitDepthForPixelFormat(encoding) < 16)
                 ? EncodeIndexedBitmap(context, encoding, dialect, source)
                 : EncodeRgbBitmap(source, context, encoding, dialect);
@@ -29,6 +32,7 @@ namespace Ico.Codecs
             var colorTable = BuildColorTable(1u << numBits, context, source);
             if (colorTable == null)
             {
+                context.LastEncodeError = IcoErrorCode.TooManyColorsForBitDepth;
                 return null;
             }
 

@@ -1,5 +1,6 @@
 ﻿using Ico.Binary;
 using Ico.Model;
+using Ico.Validation;
 using System;
 
 namespace Ico.Codecs
@@ -16,17 +17,17 @@ namespace Ico.Codecs
 
             if (idReserved != FileFormatConstants._iconMagicHeader)
             {
-                throw new InvalidIcoFileException($"ICONDIR.idReserved should be {FileFormatConstants._iconMagicHeader}, was {idReserved}.", context);
+                throw new InvalidIcoFileException(IcoErrorCode.InvalidIcoHeader_idReserved, $"ICONDIR.idReserved should be {FileFormatConstants._iconMagicHeader}, was {idReserved}.", context);
             }
 
             if (idType != FileFormatConstants._iconMagicType)
             {
-                throw new InvalidIcoFileException($"ICONDIR.idType should be {FileFormatConstants._iconMagicType}, was {idType}.", context);
+                throw new InvalidIcoFileException(IcoErrorCode.InvalidIconHeader_idType, $"ICONDIR.idType should be {FileFormatConstants._iconMagicType}, was {idType}.", context);
             }
 
             if (idCount == 0 || idCount > FileFormatConstants._iconMaxEntries)
             {
-                throw new InvalidIcoFileException($"ICONDIR.idCount is {idCount}, an implausible value for an ICO file.", context);
+                throw new InvalidIcoFileException(IcoErrorCode.TooManyFrames, $"ICONDIR.idCount is {idCount}, an implausible value for an ICO file.", context);
             }
 
             for (var i = 0u; i < idCount; i++)
@@ -52,27 +53,27 @@ namespace Ico.Codecs
 
             if (bWidth != bHeight)
             {
-                context.Reporter.WarnLine($"Icon is not square ({bWidth}x{bHeight}).", context.DisplayedPath, context.ImageDirectoryIndex.Value);
+                context.Reporter.WarnLine(IcoErrorCode.NotSquare, $"Icon is not square ({bWidth}x{bHeight}).", context.DisplayedPath, context.ImageDirectoryIndex.Value);
             }
 
             if (bReserved != FileFormatConstants._iconEntryReserved)
             {
-                throw new InvalidIcoFileException($"ICONDIRECTORY.bReserved should be {FileFormatConstants._iconEntryReserved}, was {bReserved}.", context);
+                throw new InvalidIcoFileException(IcoErrorCode.InvalidFrameHeader_bReserved, $"ICONDIRECTORY.bReserved should be {FileFormatConstants._iconEntryReserved}, was {bReserved}.", context);
             }
 
             if (wPlanes > 1)
             {
-                throw new InvalidIcoFileException($"ICONDIRECTORY.wPlanes is {wPlanes}.  Only single-plane bitmaps are supported.", context);
+                throw new InvalidIcoFileException(IcoErrorCode.InvalidFrameHeader_wPlanes, $"ICONDIRECTORY.wPlanes is {wPlanes}.  Only single-plane bitmaps are supported.", context);
             }
 
             if (dwBytesInRes > int.MaxValue)
             {
-                throw new InvalidIcoFileException($"ICONDIRECTORY.dwBytesInRes == {dwBytesInRes}, which is unreasonably large.", context);
+                throw new InvalidIcoFileException(IcoErrorCode.InvalidFrameHeader_dwBytesInRes, $"ICONDIRECTORY.dwBytesInRes == {dwBytesInRes}, which is unreasonably large.", context);
             }
 
             if (dwImageOffset > int.MaxValue)
             {
-                throw new InvalidIcoFileException($"ICONDIRECTORY.dwImageOffset == {dwImageOffset}, which is unreasonably large.", context);
+                throw new InvalidIcoFileException(IcoErrorCode.InvalidFrameHeader_dwImageOffset, $"ICONDIRECTORY.dwImageOffset == {dwImageOffset}, which is unreasonably large.", context);
             }
 
             var source = new IcoFrame

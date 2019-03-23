@@ -1,18 +1,20 @@
-﻿namespace Ico.Host
+﻿using Ico.Validation;
+
+namespace Ico.Host
 {
     public interface IErrorReporter
     {
-        void ErrorLine(string message);
+        void ErrorLine(IcoErrorCode errorCode, string message);
 
-        void ErrorLine(string message, string fileName);
+        void ErrorLine(IcoErrorCode errorCode, string message, string fileName);
 
-        void ErrorLine(string message, string fileName, uint frameNumber);
+        void ErrorLine(IcoErrorCode errorCode, string message, string fileName, uint frameNumber);
 
-        void WarnLine(string message);
+        void WarnLine(IcoErrorCode errorCode, string message);
 
-        void WarnLine(string message, string fileName);
+        void WarnLine(IcoErrorCode errorCode, string message, string fileName);
 
-        void WarnLine(string message, string fileName, uint frameNumber);
+        void WarnLine(IcoErrorCode errorCode, string message, string fileName, uint frameNumber);
 
         void InfoLine(string message);
 

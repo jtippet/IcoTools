@@ -1,6 +1,9 @@
 ﻿using CommandLine;
 using Ico.Codecs;
+using Ico.Console;
+using Ico.Host;
 using Ico.Model;
+using Ico.Validation;
 using Microsoft.Extensions.FileSystemGlobbing;
 using SixLabors.ImageSharp;
 using System;
@@ -13,6 +16,8 @@ namespace Ico
 {
     internal class Program
     {
+        private static ConsoleErrorReporter Reporter { get; } = new ConsoleErrorReporter();
+
         private static int Main(string[] args)
         {
             return Parser.Default.ParseArguments<CommandLineOptions>(args)
@@ -65,6 +70,8 @@ namespace Ico
                 DoFile(context, opts);
             }
 
+            Reporter.PrintHelpUrls();
+
             return 0;
         }
 
@@ -79,7 +86,7 @@ namespace Ico
                     var length = new FileInfo(context.FullPath).Length;
                     if (length > FileFormatConstants.MaxIcoFileSize)
                     {
-                        System.Console.WriteLine($"Skipping file \"{context.DisplayedPath}\", because it is unusually large ({length} bytes).  Re-run with --allow-giant-inputs to bypass this safety.");
+                        Reporter.WarnLine(IcoErrorCode.FileTooLarge, $"Skipping file because it is unusually large ({length} bytes).  Re-run with --allow-giant-inputs to bypass this safety.", context.FullPath);
                         return;
                     }
                 }
@@ -92,14 +99,7 @@ namespace Ico
                 return;
             }
 
-            try
-            {
-                DoFile(data, context, opts);
-            }
-            catch (InvalidIcoFileException e)
-            {
-                System.Console.WriteLine(e.ToString());
-            }
+            ExceptionWrapper.Try(() => DoFile(data, context, opts), context, Reporter);
         }
 
         private static void DoFile(byte[] data, ParseContext context, CommandLineOptions opts)

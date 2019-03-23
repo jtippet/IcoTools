@@ -1,5 +1,6 @@
 ﻿using Ico.Binary;
 using Ico.Model;
+using Ico.Validation;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -23,37 +24,37 @@ namespace Ico.Codecs
 
             if (biSize != FileFormatConstants._bitmapInfoHeaderSize)
             {
-                throw new InvalidIcoFileException($"BITMAPINFOHEADER.ciSize should be {FileFormatConstants._bitmapInfoHeaderSize}, was {biSize}.", context);
+                throw new InvalidIcoFileException(IcoErrorCode.InvalidBitapInfoHeader_ciSize, $"BITMAPINFOHEADER.ciSize should be {FileFormatConstants._bitmapInfoHeaderSize}, was {biSize}.", context);
             }
 
             if (biXPelsPerMeter != 0)
             {
-                throw new InvalidIcoFileException($"BITMAPINFOHEADER.biXPelsPerMeter should be 0, was {biXPelsPerMeter}.", context);
+                throw new InvalidIcoFileException(IcoErrorCode.InvalidBitapInfoHeader_biXPelsPerMeter, $"BITMAPINFOHEADER.biXPelsPerMeter should be 0, was {biXPelsPerMeter}.", context);
             }
 
             if (biYPelsPerMeter != 0)
             {
-                throw new InvalidIcoFileException($"BITMAPINFOHEADER.biYPelsPerMeter should be 0, was {biYPelsPerMeter}.", context);
+                throw new InvalidIcoFileException(IcoErrorCode.InvalidBitapInfoHeader_biYPelsPerMeter, $"BITMAPINFOHEADER.biYPelsPerMeter should be 0, was {biYPelsPerMeter}.", context);
             }
 
             if (biCompression == FileFormatConstants.BI_BITFIELDS)
             {
-                throw new InvalidIcoFileException($"This tool does not implement icon bitmaps that use BI_BITFIELDS compression.  (The .ICO file may be okay, although it is certainly unusual.)", context);
+                throw new InvalidIcoFileException(IcoErrorCode.BitfieldCompressionNotSupported, $"This tool does not implement icon bitmaps that use BI_BITFIELDS compression.  (The .ICO file may be okay, although it is certainly unusual.)", context);
             }
 
             if (biCompression != FileFormatConstants.BI_RGB)
             {
-                throw new InvalidIcoFileException($"BITMAPINFOHEADER.biCompression is unknown value ({biCompression}).", context);
+                throw new InvalidIcoFileException(IcoErrorCode.BitmapCompressionNotSupported, $"BITMAPINFOHEADER.biCompression is unknown value ({biCompression}).", context);
             }
 
             if (biHeight != source.Encoding.ClaimedHeight * 2)
             {
-                context.Reporter.WarnLine($"BITMAPINFOHEADER.biHeight is not exactly double ICONDIRECTORY.bHeight ({biHeight} != 2 * {source.Encoding.ClaimedHeight}).", context.DisplayedPath, context.ImageDirectoryIndex.Value);
+                context.Reporter.WarnLine(IcoErrorCode.MismatchedHeight, $"BITMAPINFOHEADER.biHeight is not exactly double ICONDIRECTORY.bHeight ({biHeight} != 2 * {source.Encoding.ClaimedHeight}).", context.DisplayedPath, context.ImageDirectoryIndex.Value);
             }
 
             if (biWidth != source.Encoding.ClaimedWidth)
             {
-                context.Reporter.WarnLine($"BITMAPINFOHEADER.biWidth is not exactly equal to ICONDIRECTORY.bWidth ({biWidth} != 2 * {source.Encoding.ClaimedWidth}).", context.DisplayedPath, context.ImageDirectoryIndex.Value);
+                context.Reporter.WarnLine(IcoErrorCode.MismatchedWidth, $"BITMAPINFOHEADER.biWidth is not exactly equal to ICONDIRECTORY.bWidth ({biWidth} != 2 * {source.Encoding.ClaimedWidth}).", context.DisplayedPath, context.ImageDirectoryIndex.Value);
             }
 
             var height = biHeight / 2;
@@ -83,7 +84,7 @@ namespace Ico.Codecs
                     ReadBitmap32(reader, context, height, width, source);
                     break;
                 default:
-                    throw new InvalidIcoFileException($"BITMAPINFOHEADER.biBitCount is unknown value ({biBitCount}); expected 1, 4, 8, 16, or 32 bit depth.", context);
+                    throw new InvalidIcoFileException(IcoErrorCode.InvalidBitapInfoHeader_biBitCount, $"BITMAPINFOHEADER.biBitCount is unknown value ({biBitCount}); expected 1, 4, 8, 16, or 32 bit depth.", context);
             }
         }
 
@@ -102,7 +103,7 @@ namespace Ico.Codecs
 
             if (colorTableSize > 1u << (int)bitDepth)
             {
-                throw new InvalidIcoFileException($"BITMAPINFOHEADER.biClrUsed is greater than 2^biBitCount (biClrUsed == {colorTableSize}, biBitCount = {bitDepth}).", context);
+                throw new InvalidIcoFileException(IcoErrorCode.InvalidBitapInfoHeader_biClrUsed, $"BITMAPINFOHEADER.biClrUsed is greater than 2^biBitCount (biClrUsed == {colorTableSize}, biBitCount = {bitDepth}).", context);
             }
 
             var colorTable = new Rgba32[colorTableSize];
@@ -169,12 +170,12 @@ namespace Ico.Codecs
 
             if (anyReservedChannel)
             {
-                context.Reporter.WarnLine($"Reserved Alpha channel used in color table.", context.DisplayedPath, context.ImageDirectoryIndex.Value);
+                context.Reporter.WarnLine(IcoErrorCode.NonzeroAlpha, $"Reserved Alpha channel used in color table.", context.DisplayedPath, context.ImageDirectoryIndex.Value);
             }
 
             if (anyIndexOutOfBounds)
             {
-                context.Reporter.WarnLine($"Bitmap uses color at illegal index; pixel filled with Black color.", context.DisplayedPath, context.ImageDirectoryIndex.Value);
+                context.Reporter.WarnLine(IcoErrorCode.IndexedColorOutOfBounds, $"Bitmap uses color at illegal index; pixel filled with Black color.", context.DisplayedPath, context.ImageDirectoryIndex.Value);
             }
         }
 
@@ -282,12 +283,12 @@ namespace Ico.Codecs
 
             if (!anyMask)
             {
-                context.Reporter.WarnLine($"No bitmap mask.", context.DisplayedPath, context.ImageDirectoryIndex.Value);
+                context.Reporter.WarnLine(IcoErrorCode.NoMaskedPixels, $"No bitmap mask.", context.DisplayedPath, context.ImageDirectoryIndex.Value);
             }
 
             if (anyMaskedColors)
             {
-                context.Reporter.WarnLine($"Non-black image pixels masked out.", context.DisplayedPath, context.ImageDirectoryIndex.Value);
+                context.Reporter.WarnLine(IcoErrorCode.MaskedPixelWithColor, $"Non-black image pixels masked out.", context.DisplayedPath, context.ImageDirectoryIndex.Value);
             }
         }
     }
