@@ -8,33 +8,47 @@ namespace Ico.Console
 {
     public class ConsoleErrorReporter : IErrorReporter
     {
+        public ISet<IcoErrorCode> WarningsToIgnore { get; } = new HashSet<IcoErrorCode>();
+
         public void ErrorLine(IcoErrorCode code, string message)
         {
+            if (WarningsToIgnore.Contains(code))
+                return;
             Reporter.Error.WriteLine($"Error{GenerateCode(code)}: {message}".Red());
         }
 
         public void ErrorLine(IcoErrorCode code, string message, string fileName)
         {
+            if (WarningsToIgnore.Contains(code))
+                return;
             Reporter.Error.WriteLine($"{fileName}: Error{GenerateCode(code)}: {message}".Red());
         }
 
         public void ErrorLine(IcoErrorCode code, string message, string fileName, uint frameNumber)
         {
+            if (WarningsToIgnore.Contains(code))
+                return;
             Reporter.Error.WriteLine($"{fileName}({frameNumber + 1}): Error{GenerateCode(code)}: {message}".Red());
         }
 
         public void WarnLine(IcoErrorCode code, string message)
         {
+            if (WarningsToIgnore.Contains(code))
+                return;
             Reporter.Output.WriteLine($"Warning{GenerateCode(code)}: {message}".Yellow());
         }
 
         public void WarnLine(IcoErrorCode code, string message, string fileName)
         {
+            if (WarningsToIgnore.Contains(code))
+                return;
             Reporter.Output.WriteLine($"{fileName}: Warning{GenerateCode(code)}: {message}".Yellow());
         }
 
         public void WarnLine(IcoErrorCode code, string message, string fileName, uint frameNumber)
         {
+            if (WarningsToIgnore.Contains(code))
+                return;
             Reporter.Output.WriteLine($"{fileName}({frameNumber + 1}): Warning{GenerateCode(code)}: {message}".Yellow());
         }
 

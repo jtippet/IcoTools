@@ -26,6 +26,23 @@ namespace Ico
         {
             CommandContext.SetVerbose(opts.Verbose);
 
+            foreach (var warning in opts.DisabledWarnings)
+            {
+                var munged = warning;
+                if (munged.StartsWith("ico", StringComparison.InvariantCultureIgnoreCase))
+                    munged = warning.Substring(3);
+
+                int code;
+                if (!int.TryParse(munged, out code) ||
+                    null == Enum.GetName(typeof(IcoErrorCode), code))
+                {
+                    Reporter.ErrorLine(IcoErrorCode.NoError, $"Unknown warning number \"{warning}\"");
+                    return 1;
+                }
+
+                Reporter.WarningsToIgnore.Add((IcoErrorCode)code);
+            }
+
             var files = FileGlobExpander.Expand(opts.Inputs, Reporter);
             if (files == null)
                 return 2;
