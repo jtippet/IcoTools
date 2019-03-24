@@ -22,12 +22,6 @@ namespace Ico.Cat
         [Option('b', "claimed-bitdepth", Required = false, HelpText = "Specify the bit depth of the frame.")]
         public int? BitDepthOverride { get; set; }
 
-        [Option('h', "claimed-height", Required = false, HelpText = "Specify the height of the frame.")]
-        public int? HeightOverride { get; set; }
-
-        [Option('w', "claimed-width", Required = false, HelpText = "Specify the width of the frame.")]
-        public int? WidthOverride { get; set; }
-
         [Option('e', "encoding-type", Required = false, HelpText = "Specify the encoding to use (PNG or Bitmap).")]
         public string EncodingOverrideString { get; set; }
 
@@ -37,9 +31,6 @@ namespace Ico.Cat
         public string BitmapEncodingString { get; set; }
 
         internal BitmapEncoding? BitmapEncodingOverride { get; set; }
-
-        [Option("palette-size", Required = false, HelpText = "Specify the palette size of an indexed bitmap.")]
-        public int? PaletteSizeOverride { get; set; }
 
         [Option("keep-raw-data", Required = false, HelpText = "Emit the exact source image, even if non-compliant.")]
         public bool KeepRawFrameData { get; set; } = false;
