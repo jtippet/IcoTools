@@ -10,11 +10,16 @@ namespace Ico.Console
     {
         public ISet<IcoErrorCode> WarningsToIgnore { get; } = new HashSet<IcoErrorCode>();
 
+        public uint NumberOfWarnings { get; private set; }
+        public uint NumberOfErrors { get; private set; }
+        public uint NumberOfWarningsOrErrors => NumberOfErrors + NumberOfWarnings;
+
         public void ErrorLine(IcoErrorCode code, string message)
         {
             if (WarningsToIgnore.Contains(code))
                 return;
             Reporter.Error.WriteLine($"Error{GenerateCode(code)}: {message}".Red());
+            NumberOfErrors += 1;
         }
 
         public void ErrorLine(IcoErrorCode code, string message, string fileName)
@@ -22,6 +27,7 @@ namespace Ico.Console
             if (WarningsToIgnore.Contains(code))
                 return;
             Reporter.Error.WriteLine($"{fileName}: Error{GenerateCode(code)}: {message}".Red());
+            NumberOfErrors += 1;
         }
 
         public void ErrorLine(IcoErrorCode code, string message, string fileName, uint frameNumber)
@@ -29,6 +35,7 @@ namespace Ico.Console
             if (WarningsToIgnore.Contains(code))
                 return;
             Reporter.Error.WriteLine($"{fileName}({frameNumber + 1}): Error{GenerateCode(code)}: {message}".Red());
+            NumberOfErrors += 1;
         }
 
         public void WarnLine(IcoErrorCode code, string message)
@@ -36,6 +43,7 @@ namespace Ico.Console
             if (WarningsToIgnore.Contains(code))
                 return;
             Reporter.Output.WriteLine($"Warning{GenerateCode(code)}: {message}".Yellow());
+            NumberOfWarnings += 1;
         }
 
         public void WarnLine(IcoErrorCode code, string message, string fileName)
@@ -43,6 +51,7 @@ namespace Ico.Console
             if (WarningsToIgnore.Contains(code))
                 return;
             Reporter.Output.WriteLine($"{fileName}: Warning{GenerateCode(code)}: {message}".Yellow());
+            NumberOfWarnings += 1;
         }
 
         public void WarnLine(IcoErrorCode code, string message, string fileName, uint frameNumber)
@@ -50,6 +59,7 @@ namespace Ico.Console
             if (WarningsToIgnore.Contains(code))
                 return;
             Reporter.Output.WriteLine($"{fileName}({frameNumber + 1}): Warning{GenerateCode(code)}: {message}".Yellow());
+            NumberOfWarnings += 1;
         }
 
         public void InfoLine(string message)

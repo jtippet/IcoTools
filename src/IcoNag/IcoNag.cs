@@ -64,6 +64,9 @@ namespace Ico
 
             Reporter.PrintHelpUrls();
 
+            if (Reporter.NumberOfWarningsOrErrors > 0)
+                return 3;
+
             return 0;
         }
 
