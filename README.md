@@ -19,7 +19,6 @@ Most tools do use the excellent cross-platform ImageSharp library: https://githu
 
 ## Future work
 * I need to organize and rationalize the command-line arguments.
-* I really don't like the file globbing library this uses; I want to find a replacement.
 * IcoCrush will, in some cases, emit nonportable ICO files.  There should be warnings when this happens.
 
 # Tools included in this repository

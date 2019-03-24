@@ -4,7 +4,6 @@ using Ico.Console;
 using Ico.Host;
 using Ico.Model;
 using Ico.Validation;
-using Microsoft.Extensions.FileSystemGlobbing;
 using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
@@ -40,32 +39,21 @@ namespace Ico
                 AllowPaletteTruncation = opts.AllowPaletteTruncation,
             };
 
-            var matcher = new Matcher();
-
-            foreach (var glob in opts.Inputs)
-            {
-                matcher.AddInclude(glob);
-            }
-
-            var cwd = new DirectoryInfo(Directory.GetCurrentDirectory());
-            var files = matcher.Execute(new Microsoft.Extensions.FileSystemGlobbing.Abstractions.DirectoryInfoWrapper(cwd));
-            if (!files.HasMatches)
-            {
-                System.Console.WriteLine("No files matched the inputs.");
+            var files = FileGlobExpander.Expand(opts.Inputs, Reporter);
+            if (files == null)
                 return 2;
-            }
 
-            foreach (var file in files.Files)
+            foreach (var file in files)
             {
-                if (file.Path.EndsWith(".crushed.ico"))
+                if (file.FullName.EndsWith(".crushed.ico"))
                 {
                     continue;
                 }
 
-                System.Console.WriteLine($"File: [{file.Path}]");
+                System.Console.WriteLine($"File: [{file.FullName}]");
 
-                context.FullPath = file.Path;
-                context.DisplayedPath = file.Stem;
+                context.FullPath = file.FullName;
+                context.DisplayedPath = file.Name;
                 context.GeneratedFrames = new List<IcoFrame>();
                 DoFile(context, opts);
             }

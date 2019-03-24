@@ -5,7 +5,6 @@ using Ico.Host;
 using Ico.Model;
 using Ico.Validation;
 using Microsoft.DotNet.Cli.Utils;
-using Microsoft.Extensions.FileSystemGlobbing;
 using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
@@ -28,29 +27,18 @@ namespace Ico.Extract
         {
             CommandContext.SetVerbose(opts.Verbose);
 
-            var matcher = new Matcher();
-
-            foreach (var glob in opts.Inputs)
-            {
-                matcher.AddInclude(glob);
-            }
-
-            var cwd = new DirectoryInfo(Directory.GetCurrentDirectory());
-            var files = matcher.Execute(new Microsoft.Extensions.FileSystemGlobbing.Abstractions.DirectoryInfoWrapper(cwd));
-            if (!files.HasMatches)
-            {
-                Reporter.ErrorLine(IcoErrorCode.FileNotFound, "No files matched the inputs.");
+            var files = FileGlobExpander.Expand(opts.Inputs, Reporter);
+            if (files == null)
                 return 2;
-            }
 
-            foreach (var file in files.Files)
+            foreach (var file in files)
             {
-                Reporter.VerboseLine($"Loading file: [{file.Path}]");
+                Reporter.VerboseLine($"Loading file: [{file.FullName}]");
 
                 var context = new ParseContext
                 {
-                    DisplayedPath = file.Stem,
-                    FullPath = file.Path,
+                    DisplayedPath = file.Name,
+                    FullPath = file.FullName,
                     GeneratedFrames = new List<IcoFrame>(),
                     Reporter = Reporter,
                     PngEncoder = new SixLabors.ImageSharp.Formats.Png.PngEncoder
