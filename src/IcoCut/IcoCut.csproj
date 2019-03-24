@@ -5,6 +5,14 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <RootNamespace>Ico.Cut</RootNamespace>
     <LangVersion>latest</LangVersion>
+    <Version>1.1.0</Version>
+    <Authors>Jeffrey Tippet</Authors>
+    <Product>IcoTools</Product>
+    <Copyright>Copyright 2019, Jeffrey Tippet.  All rights reserved.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/jtippet/IcoTools</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jtippet/IcoTools.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
