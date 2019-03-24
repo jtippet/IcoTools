@@ -98,7 +98,14 @@ namespace Ico
                 ? context.FullPath
                 : $"{context.FullPath}.crushed.ico";
 
-            IcoEncoder.EmitIco(outputPath, context);
+            if (opts.DryRun)
+            {
+                Reporter.InfoLine($"Dry run: not writing output [{outputPath}]");
+            }
+            else
+            {
+                IcoEncoder.EmitIco(outputPath, context);
+            }
         }
 
         private static void ProcessFrame(ParseContext context, CommandLineOptions opts, IcoFrame source)

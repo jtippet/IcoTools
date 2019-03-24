@@ -45,9 +45,6 @@ namespace Ico
         [Option("allow-downsample", Required = false, Hidden = true, HelpText = "Allow a bitmap to be encoded at a smaller bitdepth, if it can be done losslessly.")]
         public bool AllowDownsample { get; set; } = true;
 
-        [Option("allow-downscale", Required = false, Hidden = true, HelpText = "Allow a bitmap to be encoded at a smaller pixel size, if it can be done losslessly.")]
-        public bool AllowDownscale { get; set; } = true;
-
         [Option("allow-truncated-palette", Required = false, Hidden = true, HelpText = "Save a few bytes by reducing the palette size.")]
         public StrictnessPolicy AllowPaletteTruncation { get; set; } = StrictnessPolicy.PreserveSource;
 
