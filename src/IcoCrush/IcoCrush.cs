@@ -37,7 +37,8 @@ namespace Ico
 
                 MaskedImagePixelEmitOptions = opts.MaskedImagePixelEmitOptions,
                 AllowPaletteTruncation = opts.AllowPaletteTruncation,
-            };
+                Reporter = Reporter,
+        };
 
             var files = FileGlobExpander.Expand(opts.Inputs, Reporter);
             if (files == null)
