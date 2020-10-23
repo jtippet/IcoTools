@@ -29,12 +29,12 @@ namespace Ico.Codecs
 
             if (biXPelsPerMeter != 0)
             {
-                throw new InvalidIcoFileException(IcoErrorCode.InvalidBitapInfoHeader_biXPelsPerMeter, $"BITMAPINFOHEADER.biXPelsPerMeter should be 0, was {biXPelsPerMeter}.", context);
+                context.Reporter.WarnLine(IcoErrorCode.InvalidBitapInfoHeader_biXPelsPerMeter, $"BITMAPINFOHEADER.biXPelsPerMeter should be 0, was {biXPelsPerMeter}.", context.DisplayedPath, context.ImageDirectoryIndex.Value);
             }
 
             if (biYPelsPerMeter != 0)
             {
-                throw new InvalidIcoFileException(IcoErrorCode.InvalidBitapInfoHeader_biYPelsPerMeter, $"BITMAPINFOHEADER.biYPelsPerMeter should be 0, was {biYPelsPerMeter}.", context);
+                context.Reporter.WarnLine(IcoErrorCode.InvalidBitapInfoHeader_biYPelsPerMeter, $"BITMAPINFOHEADER.biYPelsPerMeter should be 0, was {biYPelsPerMeter}.", context.DisplayedPath, context.ImageDirectoryIndex.Value);
             }
 
             if (biCompression == FileFormatConstants.BI_BITFIELDS)
