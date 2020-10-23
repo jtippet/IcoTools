@@ -265,8 +265,8 @@ namespace Ico
                     break;
                 case BestFormatPolicy.PngLargeImages:
                     result.Type = (source.CookedData.Width >= opts.LargeImagePixelThreshold)
-                        ? IcoEncodingType.Bitmap
-                        : IcoEncodingType.Png;
+                        ? IcoEncodingType.Png
+                        : IcoEncodingType.Bitmap;
                     break;
                 case BestFormatPolicy.AlwaysPng:
                     result.Type = IcoEncodingType.Png;
