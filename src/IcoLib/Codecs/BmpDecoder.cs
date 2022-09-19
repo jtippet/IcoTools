@@ -124,7 +124,7 @@ namespace Ico.Codecs
                 }
 
                 c.A = 255;
-                colorTable[i] = c.ToRgba32();
+                c.ToRgba32(ref colorTable[i]);
             }
 
             var padding = reader.SeekOffset % 4;
@@ -140,7 +140,7 @@ namespace Ico.Codecs
                     if (colorIndex >= colorTableSize)
                     {
                         anyIndexOutOfBounds = true;
-                        source.CookedData[x, y] = Rgba32.Black;
+                        source.CookedData[x, y] = Color.Black;
                     }
                     else
                     {
@@ -234,7 +234,9 @@ namespace Ico.Codecs
                 for (var x = 0; x < width; x++)
                 {
                     var colorValue = new Bgra32 { PackedValue = reader.NextUint32() };
-                    source.CookedData[x, y] = colorValue.ToRgba32();
+                    Rgba32 rgba32Value = source.CookedData[x, y]; // the ref keyword cannot be used on this indexer, so we need a temporary
+                    colorValue.ToRgba32(ref rgba32Value);
+                    source.CookedData[x, y] = rgba32Value;
                 }
             }
 

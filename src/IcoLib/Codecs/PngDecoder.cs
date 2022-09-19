@@ -5,6 +5,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.IO;
+using System.Threading;
 
 namespace Ico.Codecs
 {
@@ -27,7 +28,7 @@ namespace Ico.Codecs
             using (var stream = new MemoryStream(bitmapHeader.Data.ToArray()))
             {
                 var decoder = new SixLabors.ImageSharp.Formats.Png.PngDecoder();
-                source.CookedData = decoder.Decode<Rgba32>(new Configuration(), stream);
+                source.CookedData = decoder.Decode<Rgba32>(new Configuration(), stream, CancellationToken.None);
             }
 
             source.Encoding.Type = IcoEncodingType.Png;
@@ -77,7 +78,7 @@ namespace Ico.Codecs
 
         public static PngFileEncoding GetPngFileEncoding(Memory<byte> data)
         {
-            var reader = new ByteReader(data, ByteOrder.NetworkEndian);
+            var reader = new ByteReader(data, Ico.Binary.ByteOrder.NetworkEndian);
             if (FileFormatConstants._pngHeader != reader.NextUint64())
             {
                 throw new InvalidPngFileException(IcoErrorCode.NotPng, $"Data stream does not begin with the PNG magic constant");
