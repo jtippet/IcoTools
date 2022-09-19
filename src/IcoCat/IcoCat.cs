@@ -4,14 +4,12 @@ using Ico.Codecs;
 using Ico.Console;
 using Ico.Model;
 using Ico.Validation;
-using Microsoft.DotNet.Cli.Utils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
+using System.Threading;
 
 namespace Ico.Cat
 {
@@ -85,7 +83,7 @@ namespace Ico.Cat
                 Reporter = Reporter,
                 PngEncoder = new SixLabors.ImageSharp.Formats.Png.PngEncoder
                 {
-                    CompressionLevel = 9,
+                    CompressionLevel = SixLabors.ImageSharp.Formats.Png.PngCompressionLevel.Level9,
                     ColorType = SixLabors.ImageSharp.Formats.Png.PngColorType.RgbWithAlpha,
                 },
             };
@@ -127,9 +125,9 @@ namespace Ico.Cat
             };
 
             var sourceFile = File.ReadAllBytes(opts.SourceImagePath);
-            var reader = new ByteReader(sourceFile, ByteOrder.LittleEndian);
+            var reader = new ByteReader(sourceFile, Ico.Binary.ByteOrder.LittleEndian);
             var signature = reader.NextUint64();
-            var sourceEncoding = PngDecoder.IsProbablyPngFile(ByteOrderConverter.To(ByteOrder.NetworkEndian, signature))
+            var sourceEncoding = PngDecoder.IsProbablyPngFile(ByteOrderConverter.To(Ico.Binary.ByteOrder.NetworkEndian, signature))
                 ? IcoEncodingType.Png
                 : IcoEncodingType.Bitmap;
             bool canSourceBePreserved = false;
@@ -189,7 +187,7 @@ namespace Ico.Cat
             using (var stream = new MemoryStream(sourceFile))
             {
                 var decoder = new SixLabors.ImageSharp.Formats.Bmp.BmpDecoder();
-                frame.CookedData = decoder.Decode<Rgba32>(new Configuration(), stream);
+                frame.CookedData = decoder.Decode<Rgba32>(new Configuration(), stream, CancellationToken.None);
             }
 
             frame.Encoding.Type = IcoEncodingType.Bitmap;
@@ -205,7 +203,7 @@ namespace Ico.Cat
                 using (var stream = new MemoryStream(maskSource))
                 {
                     var decoder = new SixLabors.ImageSharp.Formats.Bmp.BmpDecoder();
-                    var mask = decoder.Decode<Rgba32>(new Configuration(), stream);
+                    var mask = decoder.Decode<Rgba32>(new Configuration(), stream, CancellationToken.None);
                     if (mask.Width != frame.CookedData.Width || mask.Height != frame.CookedData.Height)
                     {
                         Reporter.ErrorLine(
@@ -255,7 +253,7 @@ namespace Ico.Cat
             using (var stream = new MemoryStream(sourceFile))
             {
                 var decoder = new SixLabors.ImageSharp.Formats.Png.PngDecoder();
-                frame.CookedData = decoder.Decode<Rgba32>(new Configuration(), stream);
+                frame.CookedData = decoder.Decode<Rgba32>(new Configuration(), stream, CancellationToken.None);
             }
 
             var encoding = PngDecoder.GetPngFileEncoding(new Memory<byte>(sourceFile));

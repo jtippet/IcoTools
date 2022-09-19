@@ -43,7 +43,7 @@ namespace Ico.Extract
                     Reporter = Reporter,
                     PngEncoder = new SixLabors.ImageSharp.Formats.Png.PngEncoder
                     {
-                        CompressionLevel = 9,
+                        CompressionLevel = SixLabors.ImageSharp.Formats.Png.PngCompressionLevel.Level9,
                         ColorType = SixLabors.ImageSharp.Formats.Png.PngColorType.RgbWithAlpha,
                     },
                 };
