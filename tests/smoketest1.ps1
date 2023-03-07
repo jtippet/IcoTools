@@ -45,6 +45,10 @@ $IcoCat = FindExecutable("IcoCat")
 $IcoCut = FindExecutable("IcoCut")
 $IcoExtract = FindExecutable("IcoExtract")
 
+$testDir = [System.IO.Path]::Combine($PSScriptRoot, "temp-" + ([System.Diagnostics.Process]::GetCurrentProcess().Id))
+Write-Host "Test Directory: " $testDir
+New-Item -ItemType Directory -Force -Path $testDir | Out-Null
+$startLocation = Get-Location
 
 #
 # Utility functions to run tools
@@ -130,6 +134,12 @@ function RunIcoInfo
 	$frames
 }
 
+function RunIcoExtract()
+{
+	param([string]$IcoExtract, [string]$iconPath)
+	& $IcoExtract -i $iconPath 2>&1
+}
+
 function MatchFrame()
 {
 	param(
@@ -170,6 +180,33 @@ function FindFrame()
 	}
 
 	return $null
+}
+
+function ClearTestDir()
+{
+	param([string]$path)
+	Get-ChildItem -Path $path -Include *.* -File -Recurse | foreach { $_.Delete()}
+}
+
+function MatchColor()
+{
+	param(
+		[System.Drawing.Bitmap]$image,
+		[int]$r,
+		[int]$g,
+		[int]$b
+	)
+	$col = $image.GetPixel(0, 0)
+	(($col.R -eq $r) -and ($col.G -eq $g) -and ($col.B -eq $b))
+}
+
+function FindImage()
+{
+	param(
+		[array]$images,
+		[int]$size
+	)
+	return $images | where width -eq $size
 }
 
 
@@ -218,15 +255,22 @@ function AreEqual()
 	Assert ($expected -eq $actual) $message "[Expected: $expected; Actual: $actual] " $critical
 }
 
+try
+{
 
 #
 # Tests
 #
 
+Set-Location $testDir
+
+$all_ext_ico = ([System.IO.Path]::Combine($PSScriptRoot, "..\tests\data\all_ext.ico"))
+$x32_ext_ico = ([System.IO.Path]::Combine($PSScriptRoot, "..\tests\data\x32_ext.ico"))
+
 Write-Host
 Write-Host "Test Group: IcoInfo Fundamentals"
 
-$f = RunIcoInfo $IcoInfo ([System.IO.Path]::Combine($PSScriptRoot, "..\tests\data\all_ext.ico"))
+$f = RunIcoInfo $IcoInfo $all_ext_ico
 Assert ($f -is [Hashtable]) "RunIcoInfo returns the expected type"
 AreEqual 6 $f.Count "Info(all_ext.ico) shows 6 frames"
 Assert (MatchFrame (FindFrame $f @{ width=16 }) @{ encoding="Bitmap"; height=16; bitDepth=32 }) "Has x16 bmp frame"
@@ -236,22 +280,61 @@ Assert (MatchFrame (FindFrame $f @{ width=48 }) @{ encoding="Bitmap"; height=48;
 Assert (MatchFrame (FindFrame $f @{ width=64 }) @{ encoding="Bitmap"; height=64; bitDepth=32 }) "Has x64 bmp frame"
 Assert (MatchFrame (FindFrame $f @{ width=256 }) @{ encoding="PNG"; height=256; bitDepth=32 }) "Has x256 png frame"
 
-$f = RunIcoInfo $IcoInfo ([System.IO.Path]::Combine($PSScriptRoot, "..\tests\data\x32_ext.ico"))
+$f = RunIcoInfo $IcoInfo $x32_ext_ico
 AreEqual 1 $f.Count "Info(x32_ext.ico) shows 1 frame"
 Assert (MatchFrame (FindFrame $f @{ width=32 }) @{ encoding="Bitmap"; height=32; bitDepth=32 }) "Has x32 bmp frame"
 
-$f = RunIcoInfo $IcoInfo ([System.IO.Path]::Combine($PSScriptRoot, "..\tests\data\all_png.ico"))
-AreEqual 6 $f.Count "Info(all_png.ico) shows 6 frames"
-Assert (MatchFrame (FindFrame $f @{ width=16 }) @{ encoding="PNG"; height=16; bitDepth=32 }) "Has x16 png frame"
-Assert (MatchFrame (FindFrame $f @{ width=24 }) @{ encoding="PNG"; height=24; bitDepth=32 }) "Has x24 png frame"
-Assert (MatchFrame (FindFrame $f @{ width=32 }) @{ encoding="PNG"; height=32; bitDepth=32 }) "Has x32 png frame"
-Assert (MatchFrame (FindFrame $f @{ width=48 }) @{ encoding="PNG"; height=48; bitDepth=32 }) "Has x48 png frame"
-Assert (MatchFrame (FindFrame $f @{ width=64 }) @{ encoding="PNG"; height=64; bitDepth=32 }) "Has x64 png frame"
-Assert (MatchFrame (FindFrame $f @{ width=256 }) @{ encoding="PNG"; height=256; bitDepth=32 }) "Has x256 png frame"
 
-$f = RunIcoInfo $IcoInfo ([System.IO.Path]::Combine($PSScriptRoot, "..\tests\data\x32_png.ico"))
-AreEqual 1 $f.Count "Info(x32_png.ico) shows 1 frame"
-Assert (MatchFrame (FindFrame $f @{ width=32 }) @{ encoding="PNG"; height=32; bitDepth=32 }) "Has x32 png frame"
+Write-Host
+Write-Host "Test Group: IcoExtract"
+
+ClearTestDir $testDir
+AreEqual 0 (Get-ChildItem -Path $testDir -Include *.* -File -Recurse).Length "Test directory is empty"
+
+copy $all_ext_ico "i1.ico"
+RunIcoExtract $IcoExtract "i1.ico"
+$files = Get-ChildItem -Path $testDir -Include *.png -File -Recurse
+if ($files -isnot [Array]) { $files = @( $files ) }
+AreEqual 6 $files.Length "Six png frames extracted"
+
+$images = $files | foreach { new-object System.Drawing.Bitmap($_.FullName) }
+Assert (MatchColor (FindImage $images 16) 255 0 0) "Extracted x16 image with right color"
+Assert (MatchColor (FindImage $images 24) 0 255 0) "Extracted x24 image with right color"
+Assert (MatchColor (FindImage $images 32) 255 255 0) "Extracted x32 image with right color"
+Assert (MatchColor (FindImage $images 48) 0 0 255) "Extracted x48 image with right color"
+Assert (MatchColor (FindImage $images 64) 255 0 255) "Extracted x64 image with right color"
+Assert (MatchColor (FindImage $images 256) 0 255 255) "Extracted x256 image with right color"
+$images = $null
+[System.GC]::Collect()
+
+ClearTestDir $testDir
+AreEqual 0 (Get-ChildItem -Path $testDir -Include *.* -File -Recurse).Length "Test directory is empty"
+
+copy $x32_ext_ico "i2.ico"
+RunIcoExtract $IcoExtract "i2.ico"
+$files = Get-ChildItem -Path $testDir -Include *.png -File -Recurse
+if ($files -isnot [Array]) { $files = @( $files ) }
+AreEqual 1 $files.Length "One png frame extracted"
+
+$images = $files | foreach { new-object System.Drawing.Bitmap($_.FullName) }
+Assert (MatchColor (FindImage $images 32) 255 255 0) "Extracted x32 image with right color"
+$images = $null
+[System.GC]::Collect()
+
+ClearTestDir $testDir
+AreEqual 0 (Get-ChildItem -Path $testDir -Include *.* -File -Recurse).Length "Test directory is empty"
+
+
+Write-Host
+Write-Host "Test Group: IcoCat"
+
+# TODO
+
+
+Write-Host
+Write-Host "Test Group: IcoCut"
+
+# TODO
 
 
 #
@@ -260,3 +343,19 @@ Assert (MatchFrame (FindFrame $f @{ width=32 }) @{ encoding="PNG"; height=32; bi
 
 Write-Host
 Write-Host "Done."
+
+}
+finally
+{
+	$images = $null
+	[System.GC]::Collect()
+
+	# DEBUG DEBUG DEBUG
+	Pause
+
+	Set-Location $startLocation
+	if (Test-Path $testDir)
+	{
+		Remove-Item $testDir -Recurse -Force
+	}
+}
