@@ -140,6 +140,24 @@ function RunIcoExtract()
 	& $IcoExtract -i $iconPath 2>&1
 }
 
+function RunIcoCat()
+{
+	param([string]$IcoCat, [string]$iconPath, [string]$imagePath, [string]$encoding)
+	& $IcoCat -i $iconPath -s $imagePath -e $encoding 2>&1
+}
+
+function RunIcoCutSize()
+{
+	param([string]$IcoCut, [string]$iconPath, [int]$size)
+	& $IcoCut -i $iconPath -s $size 2>&1
+}
+
+function RunIcoCutFrame()
+{
+	param([string]$IcoCut, [string]$iconPath, [int]$frameNumber)
+	& $IcoCut -i $iconPath -d $frameNumber 2>&1
+}
+
 function MatchFrame()
 {
 	param(
@@ -175,7 +193,9 @@ function FindFrame()
 	{
 		if (MatchFrame $f.value $needle)
 		{
-			return $f.value
+			$o = $f.value.psobject.copy()
+			$o | Add-Member -MemberType NoteProperty -Name "Num" -Value $f.key
+			return $o
 		}
 	}
 
@@ -188,16 +208,17 @@ function ClearTestDir()
 	Get-ChildItem -Path $path -Include *.* -File -Recurse | foreach { $_.Delete()}
 }
 
-function MatchColor()
+function MatchImage()
 {
 	param(
 		[System.Drawing.Bitmap]$image,
+		[int]$size,
 		[int]$r,
 		[int]$g,
 		[int]$b
 	)
 	$col = $image.GetPixel(0, 0)
-	(($col.R -eq $r) -and ($col.G -eq $g) -and ($col.B -eq $b))
+	(($image.Width -eq $size) -and ($col.R -eq $r) -and ($col.G -eq $g) -and ($col.B -eq $b))
 }
 
 function FindImage()
@@ -267,6 +288,8 @@ Set-Location $testDir
 $all_ext_ico = ([System.IO.Path]::Combine($PSScriptRoot, "..\tests\data\all_ext.ico"))
 $x32_ext_ico = ([System.IO.Path]::Combine($PSScriptRoot, "..\tests\data\x32_ext.ico"))
 
+#
+# Test Group
 Write-Host
 Write-Host "Test Group: IcoInfo Fundamentals"
 
@@ -284,7 +307,8 @@ $f = RunIcoInfo $IcoInfo $x32_ext_ico
 AreEqual 1 $f.Count "Info(x32_ext.ico) shows 1 frame"
 Assert (MatchFrame (FindFrame $f @{ width=32 }) @{ encoding="Bitmap"; height=32; bitDepth=32 }) "Has x32 bmp frame"
 
-
+#
+# Test Group
 Write-Host
 Write-Host "Test Group: IcoExtract"
 
@@ -298,12 +322,12 @@ if ($files -isnot [Array]) { $files = @( $files ) }
 AreEqual 6 $files.Length "Six png frames extracted"
 
 $images = $files | foreach { new-object System.Drawing.Bitmap($_.FullName) }
-Assert (MatchColor (FindImage $images 16) 255 0 0) "Extracted x16 image with right color"
-Assert (MatchColor (FindImage $images 24) 0 255 0) "Extracted x24 image with right color"
-Assert (MatchColor (FindImage $images 32) 255 255 0) "Extracted x32 image with right color"
-Assert (MatchColor (FindImage $images 48) 0 0 255) "Extracted x48 image with right color"
-Assert (MatchColor (FindImage $images 64) 255 0 255) "Extracted x64 image with right color"
-Assert (MatchColor (FindImage $images 256) 0 255 255) "Extracted x256 image with right color"
+Assert (MatchImage (FindImage $images 16) 16 255 0 0) "Extracted x16 image with right size and color"
+Assert (MatchImage (FindImage $images 24) 24 0 255 0) "Extracted x24 image with right size and color"
+Assert (MatchImage (FindImage $images 32) 32 255 255 0) "Extracted x32 image with right size and color"
+Assert (MatchImage (FindImage $images 48) 48 0 0 255) "Extracted x48 image with right size and color"
+Assert (MatchImage (FindImage $images 64) 64 255 0 255) "Extracted x64 image with right size and color"
+Assert (MatchImage (FindImage $images 256) 256 0 255 255) "Extracted x256 image with right size and color"
 $images = $null
 [System.GC]::Collect()
 
@@ -317,24 +341,135 @@ if ($files -isnot [Array]) { $files = @( $files ) }
 AreEqual 1 $files.Length "One png frame extracted"
 
 $images = $files | foreach { new-object System.Drawing.Bitmap($_.FullName) }
-Assert (MatchColor (FindImage $images 32) 255 255 0) "Extracted x32 image with right color"
+Assert (MatchImage (FindImage $images 32) 32 255 255 0) "Extracted x32 image with right size and color"
 $images = $null
 [System.GC]::Collect()
 
 ClearTestDir $testDir
 AreEqual 0 (Get-ChildItem -Path $testDir -Include *.* -File -Recurse).Length "Test directory is empty"
 
-
+#
+# Test Group
 Write-Host
 Write-Host "Test Group: IcoCat"
 
-# TODO
+ClearTestDir $testDir
+AreEqual 0 (Get-ChildItem -Path $testDir -Include *.* -File -Recurse).Length "Test directory is empty"
 
+RunIcoCat $IcoCat "i3.ico" "../Data/x256.png" "PNG"
+Assert (Test-Path "i3.ico") "Icon file generated"
+$f = RunIcoInfo $IcoInfo "i3.ico"
+AreEqual 1 $f.Count "Info(i3.ico) shows 1 frame"
+Assert (MatchFrame (FindFrame $f @{ width=256 }) @{ encoding="PNG"; height=256; bitDepth=32 }) "Has x256 PNG frame"
 
+RunIcoCat $IcoCat "i3.ico" "../Data/x32.png" "Bitmap"
+$f = RunIcoInfo $IcoInfo "i3.ico"
+AreEqual 2 $f.Count "Info(i3.ico) shows 2 frame"
+Assert (MatchFrame (FindFrame $f @{ width=256 }) @{ encoding="PNG"; height=256; bitDepth=32 }) "Has x256 PNG frame"
+Assert (MatchFrame (FindFrame $f @{ width=32 }) @{ encoding="Bitmap"; height=32; bitDepth=32 }) "Has x32 bmp frame"
+
+RunIcoCat $IcoCat "i3.ico" "../Data/x64.png" "Bitmap"
+$f = RunIcoInfo $IcoInfo "i3.ico"
+AreEqual 3 $f.Count "Info(i3.ico) shows 3 frame"
+Assert (MatchFrame (FindFrame $f @{ width=256 }) @{ encoding="PNG"; height=256; bitDepth=32 }) "Has x256 PNG frame"
+Assert (MatchFrame (FindFrame $f @{ width=64 }) @{ encoding="Bitmap"; height=64; bitDepth=32 }) "Has x64 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=32 }) @{ encoding="Bitmap"; height=32; bitDepth=32 }) "Has x32 bmp frame"
+
+copy $x32_ext_ico "i4.ico"
+$f = RunIcoInfo $IcoInfo "i4.ico"
+AreEqual 1 $f.Count "Info(i4.ico) shows 1 frame"
+Assert (MatchFrame (FindFrame $f @{ width=32 }) @{ encoding="Bitmap"; height=32; bitDepth=32 }) "Has x32 bmp frame"
+
+RunIcoCat $IcoCat "i4.ico" "../Data/x48.png" "Bitmap"
+$f = RunIcoInfo $IcoInfo "i4.ico"
+AreEqual 2 $f.Count "Info(i4.ico) shows 2 frame"
+Assert (MatchFrame (FindFrame $f @{ width=32 }) @{ encoding="Bitmap"; height=32; bitDepth=32 }) "Has x32 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=48 }) @{ encoding="Bitmap"; height=48; bitDepth=32 }) "Has x48 bmp frame"
+
+ClearTestDir $testDir
+AreEqual 0 (Get-ChildItem -Path $testDir -Include *.* -File -Recurse).Length "Test directory is empty"
+
+#
+# Test Group
 Write-Host
 Write-Host "Test Group: IcoCut"
 
-# TODO
+ClearTestDir $testDir
+AreEqual 0 (Get-ChildItem -Path $testDir -Include *.* -File -Recurse).Length "Test directory is empty"
+
+copy $all_ext_ico "i5.ico"
+$f = RunIcoInfo $IcoInfo "i5.ico"
+AreEqual 6 $f.Count "Info(i5.ico) shows 6 frames"
+Assert (MatchFrame (FindFrame $f @{ width=16 }) @{ encoding="Bitmap"; height=16; bitDepth=32 }) "Has x16 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=24 }) @{ encoding="Bitmap"; height=24; bitDepth=32 }) "Has x24 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=32 }) @{ encoding="Bitmap"; height=32; bitDepth=32 }) "Has x32 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=48 }) @{ encoding="Bitmap"; height=48; bitDepth=32 }) "Has x48 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=64 }) @{ encoding="Bitmap"; height=64; bitDepth=32 }) "Has x64 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=256 }) @{ encoding="PNG"; height=256; bitDepth=32 }) "Has x256 png frame"
+
+$frameNumber = (FindFrame $f @{ width=64 }).Num
+RunIcoCutFrame $IcoCut "i5.ico" $frameNumber
+$f = RunIcoInfo $IcoInfo "i5.ico"
+AreEqual 5 $f.Count "Info(i5.ico) shows 5 frames"
+Assert (MatchFrame (FindFrame $f @{ width=16 }) @{ encoding="Bitmap"; height=16; bitDepth=32 }) "Has x16 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=24 }) @{ encoding="Bitmap"; height=24; bitDepth=32 }) "Has x24 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=32 }) @{ encoding="Bitmap"; height=32; bitDepth=32 }) "Has x32 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=48 }) @{ encoding="Bitmap"; height=48; bitDepth=32 }) "Has x48 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=256 }) @{ encoding="PNG"; height=256; bitDepth=32 }) "Has x256 png frame"
+
+RunIcoCutSize $IcoCut "i5.ico" 32
+$f = RunIcoInfo $IcoInfo "i5.ico"
+AreEqual 4 $f.Count "Info(i5.ico) shows 4 frames"
+Assert (MatchFrame (FindFrame $f @{ width=16 }) @{ encoding="Bitmap"; height=16; bitDepth=32 }) "Has x16 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=24 }) @{ encoding="Bitmap"; height=24; bitDepth=32 }) "Has x24 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=48 }) @{ encoding="Bitmap"; height=48; bitDepth=32 }) "Has x48 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=256 }) @{ encoding="PNG"; height=256; bitDepth=32 }) "Has x256 png frame"
+
+ClearTestDir $testDir
+AreEqual 0 (Get-ChildItem -Path $testDir -Include *.* -File -Recurse).Length "Test directory is empty"
+
+#
+# Test Group
+Write-Host
+Write-Host "Test Group: Mixed IcoCat & IcoCut"
+
+ClearTestDir $testDir
+AreEqual 0 (Get-ChildItem -Path $testDir -Include *.* -File -Recurse).Length "Test directory is empty"
+
+copy $x32_ext_ico "i6.ico"
+$f = RunIcoInfo $IcoInfo "i6.ico"
+AreEqual 1 $f.Count "Info(i6.ico) shows 1 frame"
+Assert (MatchFrame (FindFrame $f @{ width=32 }) @{ encoding="Bitmap"; height=32; bitDepth=32 }) "Has x32 bmp frame"
+
+RunIcoCat $IcoCat "i6.ico" "../Data/x256.png" "PNG"
+$f = RunIcoInfo $IcoInfo "i6.ico"
+AreEqual 2 $f.Count "Info(i6.ico) shows 2 frames"
+Assert (MatchFrame (FindFrame $f @{ width=256 }) @{ encoding="PNG"; height=256; bitDepth=32 }) "Has x256 PNG frame"
+Assert (MatchFrame (FindFrame $f @{ width=32 }) @{ encoding="Bitmap"; height=32; bitDepth=32 }) "Has x32 bmp frame"
+
+RunIcoCat $IcoCat "i6.ico" "../Data/x64.png" "Bitmap"
+$f = RunIcoInfo $IcoInfo "i6.ico"
+AreEqual 3 $f.Count "Info(i6.ico) shows 3 frame"
+Assert (MatchFrame (FindFrame $f @{ width=256 }) @{ encoding="PNG"; height=256; bitDepth=32 }) "Has x256 PNG frame"
+Assert (MatchFrame (FindFrame $f @{ width=64 }) @{ encoding="Bitmap"; height=64; bitDepth=32 }) "Has x64 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=32 }) @{ encoding="Bitmap"; height=32; bitDepth=32 }) "Has x32 bmp frame"
+
+RunIcoCutSize $IcoCut "i6.ico" 32
+$f = RunIcoInfo $IcoInfo "i6.ico"
+AreEqual 2 $f.Count "Info(i6.ico) shows 2 frame"
+Assert (MatchFrame (FindFrame $f @{ width=256 }) @{ encoding="PNG"; height=256; bitDepth=32 }) "Has x256 PNG frame"
+Assert (MatchFrame (FindFrame $f @{ width=64 }) @{ encoding="Bitmap"; height=64; bitDepth=32 }) "Has x64 bmp frame"
+
+RunIcoCat $IcoCat "i6.ico" "../Data/x16.png" "Bitmap"
+$f = RunIcoInfo $IcoInfo "i6.ico"
+AreEqual 3 $f.Count "Info(i6.ico) shows 3 frame"
+Assert (MatchFrame (FindFrame $f @{ width=256 }) @{ encoding="PNG"; height=256; bitDepth=32 }) "Has x256 PNG frame"
+Assert (MatchFrame (FindFrame $f @{ width=64 }) @{ encoding="Bitmap"; height=64; bitDepth=32 }) "Has x64 bmp frame"
+Assert (MatchFrame (FindFrame $f @{ width=16 }) @{ encoding="Bitmap"; height=16; bitDepth=32 }) "Has x16 bmp frame"
+
+
+ClearTestDir $testDir
+AreEqual 0 (Get-ChildItem -Path $testDir -Include *.* -File -Recurse).Length "Test directory is empty"
 
 
 #
@@ -342,6 +477,7 @@ Write-Host "Test Group: IcoCut"
 #
 
 Write-Host
+Assert $true "All tests completed"
 Write-Host "Done."
 
 }
@@ -349,9 +485,6 @@ finally
 {
 	$images = $null
 	[System.GC]::Collect()
-
-	# DEBUG DEBUG DEBUG
-	Pause
 
 	Set-Location $startLocation
 	if (Test-Path $testDir)
