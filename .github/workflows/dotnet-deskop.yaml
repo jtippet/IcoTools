@@ -1,0 +1,79 @@
+name: DotNet Desktop Build Action
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Inject Build Number
+      shell: pwsh
+      run: |
+        gci -recurse -path . *.csproj | % {
+          $csproj = New-Object System.XML.XMLDocument
+          $csprojPath = $_.FullName
+          $csproj.Load($csprojPath)
+          $version = New-Object System.Version $csproj.Project.PropertyGroup.Version
+          $version = New-Object System.Version @( $version.Major, $version.Minor, ([System.Math]::Max(0, $version.Build)), $env:GITHUB_RUN_NUMBER )
+          $csproj.Project.PropertyGroup.Version = $version.ToString()
+          $csproj.Save($csprojPath)
+          Write-Host "$csprojPath Version number: $version"
+        }
+
+        $readme = [System.Collections.ArrayList](gc README.md)
+        $readme.Insert(2, "Version: $version")
+        $readme | out-string -stream | &{ [string]::Join("`n", @($input)) } | Out-File .\README.md -Encoding UTF8noBOM
+
+        Write-Host "Version number: $version"
+        Write-Output "FULL_VERSION_NUMBER=$version" >> $env:GITHUB_ENV
+
+    - name: Install Dependencies
+      run: dotnet restore src/IcoTools.sln
+
+    - name: Build Application
+      run: dotnet build --configuration ${{ matrix.configuration }} --no-restore src/IcoTools.sln
+
+    - name: Collect Build Artifacts
+      shell: pwsh
+      run: |
+        rm ".\artifacts" -recurse -force -ErrorAction Ignore
+        mkdir ".\artifacts\IcoTools"
+        gci -recurse -path . *.csproj | % {
+          $csproj = New-Object System.XML.XMLDocument
+          $csproj.Load($_.FullName)
+          $targetFramework = $csproj.Project.PropertyGroup.TargetFramework
+
+          $outDir = [System.IO.Path]::Combine($_.Directory, "bin", "${{ matrix.configuration }}", $targetFramework)
+          cp -Path "$outDir\*" -Destination ".\artifacts\IcoTools" -Recurse -Force
+        }
+        cp README.md ".\artifacts\IcoTools"
+        cp LICENSE ".\artifacts\IcoTools"
+
+        gci -recurse -path ".\artifacts\IcoTools" | % { $_.FullName }
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: IcoTools-${{env.FULL_VERSION_NUMBER}}-${{matrix.configuration}}
+        path: |
+          artifacts/IcoTools
+        if-no-files-found: error
