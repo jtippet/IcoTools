@@ -1,6 +1,9 @@
 # IcoTools
 Tools to cope with the ICO file format.
 
+[![DotNet Desktop Build Action](https://github.com/jtippet/IcoTools/actions/workflows/dotnet-deskop.yaml/badge.svg)](https://github.com/jtippet/IcoTools/actions/workflows/dotnet-deskop.yaml)
+[![GitHub](https://img.shields.io/github/license/jtippet/IcoTools)](/LICENSE)
+
 You can dismantle, recombine, and optimize your icons.
 These tools use a pure C# parser and generator for icons, so they run on any operating system.
 In the UNIX tradition, each tool does one simple thing.

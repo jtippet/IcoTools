@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net6</TargetFramework>
     <RootNamespace>Ico.Nag</RootNamespace>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <Authors>Jeffrey Tippet</Authors>
     <Product>IcoTools</Product>
     <Copyright>Copyright 2019, Jeffrey Tippet.  All rights reserved.</Copyright>
