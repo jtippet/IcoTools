@@ -52,6 +52,10 @@ jobs:
     - name: Build Application
       run: dotnet build --configuration ${{ matrix.configuration }} --no-restore src/IcoTools.sln
 
+    - name: Run Smoke Tests
+      run: |
+        .\tests\smoketest1.ps1 ${{ matrix.configuration }}
+
     - name: Collect Build Artifacts
       shell: pwsh
       run: |
